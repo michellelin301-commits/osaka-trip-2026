@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大阪六日快樂遊🌸</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 全域字體設定 */
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            color: #4a4a4a;
+        }
+
+        /* 自定義滾動條 - 針對主內容區域 */
+        main::-webkit-scrollbar { width: 4px; }
+        main::-webkit-scrollbar-track { background: transparent; }
+        main::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* 手繪感時間軸線 */
+        .timeline-line {
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            border-left: 2px dashed #cbd5e1;
+            background: transparent;
+            z-index: 0;
+        }
+
+        /* 手帳貼紙陰影 */
+        .sticker-shadow {
+            box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.1);
+        }
+        
+        /* 紙膠帶標題 (已移除陰影) */
+        .washi-tape {
+            position: relative;
+            display: inline-block;
+            background-color: #fce7f3;
+            padding: 4px 12px;
+            border-radius: 2px;
+        }
+
+        /* 票根缺口 */
+        .ticket-notch {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #F0F4F9;
+            border-radius: 50%;
+            z-index: 10;
+        }
+		
+		/* 隱藏橫向選單的捲動條 */
+		.hide-scrollbar::-webkit-scrollbar {
+			display: none;
+		}
+		.hide-scrollbar {
+			-ms-overflow-style: none; /* IE and Edge */
+			scrollbar-width: none; /* Firefox */
+		}
+
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-200 flex items-center justify-center min-h-screen m-0">
+
+<div class="w-full sm:w-[393px] h-[100dvh] sm:h-[852px] sm:rounded-[45px] sm:border-[12px] border-gray-800 shadow-2xl overflow-hidden relative bg-[#F0F4F9]">
+    
+    <div id="app" class="w-full h-full overflow-hidden flex flex-col relative" v-cloak>
+
+        <header class="bg-white/90 backdrop-blur-sm p-4 z-50 border-b-2 border-dashed border-pink-200 flex-shrink-0">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="bg-pink-400 text-white w-10 h-10 rounded-full flex items-center justify-center mr-3 sticker-shadow transform -rotate-6">
+                        <i class="fas fa-plane"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-700 tracking-wide">大阪六日快樂遊🌸</h1>
+                        <p class="text-sm text-gray-500 font-medium tracking-widest">2026.04.16 - 04.21</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+		<main 
+			class="flex-grow overflow-y-auto px-4 space-y-8 pb-8 relative"
+			:class="currentTab === 'itinerary' ? 'pt-0' : 'pt-4'"
+		>
+
+            <section v-if="currentTab === 'info'" class="space-y-6 animate-fade-in">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative text-sm">
+                    <div class="ticket-notch -left-2 top-1/2 transform -translate-y-1/2 border-r border-gray-200"></div>
+                    <div class="ticket-notch -right-2 top-1/2 transform -translate-y-1/2 border-l border-gray-200"></div>
+
+                    <div class="bg-stripes-gray px-3 py-1.5 border-b border-dashed border-gray-200 flex justify-between items-center bg-gray-50">
+                        <h3 class="font-bold text-gray-600 text-xs"><i class="fas fa-plane text-purple-400 mr-1"></i>Flights</h3>
+                        <span class="text-[10px] text-gray-400 bg-white px-1.5 rounded border border-gray-200">IT212 / JX823</span>
+                    </div>
+                    
+                    <div class="flex flex-col divide-y divide-dashed divide-gray-200">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="bg-purple-100 text-purple-600 text-[10px] font-bold px-1 rounded">去程</span>
+                                <span class="text-[10px] text-gray-500">04.16 (Thu)</span>
+                            </div>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <div class="text-xl font-bold text-gray-700 leading-none">15:15</div>
+                                    <div class="text-[10px] text-gray-400 mt-1">TPE</div>
+                                </div>
+                                <div class="flex flex-col items-center px-4 w-full">
+                                    <div class="border-b border-gray-300 w-full mb-1 relative"></div>
+                                    <i class="fas fa-plane text-purple-300 text-xs transform rotate-90"></i>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xl font-bold text-gray-700 leading-none">19:00</div>
+                                    <div class="text-[10px] text-gray-400 mt-1">KIX</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="bg-blue-100 text-blue-600 text-[10px] font-bold px-1 rounded">回程</span>
+                                <span class="text-[10px] text-gray-500">04.21 (Tue)</span>
+                            </div>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <div class="text-xl font-bold text-gray-700 leading-none">15:10</div>
+                                    <div class="text-[10px] text-gray-400 mt-1">KIX</div>
+                                </div>
+                                <div class="flex flex-col items-center px-4 w-full">
+                                    <div class="border-b border-gray-300 w-full mb-1 relative"></div>
+                                    <i class="fas fa-plane text-blue-300 text-xs transform rotate-90"></i>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xl font-bold text-gray-700 leading-none">17:05</div>
+                                    <div class="text-[10px] text-gray-400 mt-1">TPE</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 relative mx-1 mt-6">
+				<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-yellow-100/50 rotate-1 border-l border-r border-white/50 z-10"></div>
+				
+				<div @click="isWeatherOpen = !isWeatherOpen" class="flex justify-between items-center cursor-pointer border-b border-dashed border-gray-200 pb-2">
+					<h3 class="font-bold text-gray-600 text-sm">
+						<i class="fas fa-calendar-week text-orange-400 mr-2"></i>每日天氣預報 (關西)
+					</h3>
+					<div class="p-1">
+						<i :class="isWeatherOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-gray-400 text-xs transition-transform"></i>
+					</div>
+				</div>
+				
+				<div v-show="isWeatherOpen" class="flex flex-col space-y-2 mt-3 animate-fade-in">
+					<div v-for="(weather, index) in weatherForecast" :key="index" class="flex items-center justify-between bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-[1px_1px_0px_0px_rgba(0,0,0,0.05)] hover:bg-gray-100 transition-colors">
+						<div class="flex-shrink-0 w-[80px]">
+							<span class="text-xs text-gray-600 font-bold">{{ weather.date }}</span>
+						</div>
+						
+						<div class="flex items-center space-x-2 flex-grow justify-center">
+							<i :class="[weather.icon, weather.color]" class="text-lg w-5 text-center"></i>
+							<span class="text-xs text-gray-500 w-12">{{ weather.desc }}</span>
+						</div>
+						
+						<div class="flex-shrink-0 text-right w-[60px]">
+							<span class="text-xs font-bold text-gray-700 font-mono">{{ weather.temp }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+            </section>
+
+            <section v-if="currentTab === 'itinerary'" class="space-y-4 animate-fade-in">
+			<div class="sticky top-0 z-30 bg-[#F0F4F9] pt-4 pb-4 flex overflow-x-auto space-x-2 flex-shrink-0 hide-scrollbar -mx-4 px-4 mb-4 border-b border-gray-200/50">
+				<button 
+					v-for="(day, index) in itinerary" 
+					:key="'tab-' + index"
+					@click="currentDayIndex = index"
+					class="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-all shadow-sm border whitespace-nowrap"
+					:class="currentDayIndex === index ? 'bg-pink-100 text-pink-600 border-pink-300' : 'bg-white text-gray-400 border-gray-200 hover:bg-gray-50'"
+				>
+					Day {{ index + 1 }}
+				</button>
+			</div>
+
+			<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6 animate-fade-in" :key="currentDayIndex">
+				<div class="p-4 border-b border-gray-100 bg-white">
+					<div class="flex flex-col items-start">
+						<span class="washi-tape text-pink-700 text-sm font-bold mb-2">
+							{{ itinerary[currentDayIndex].date }}
+						</span>
+						<h2 class="font-bold text-lg text-gray-700 leading-tight pl-[8px] border-l-4 border-pink-300 ml-1">
+							{{ itinerary[currentDayIndex].title }}
+						</h2>
+					</div>
+				</div>
+
+				<div class="p-5 bg-white relative">
+					<div class="flex justify-between text-sm text-gray-500 mb-6 bg-gray-50 p-2 rounded-lg border border-dashed border-gray-200">
+						<span><i class="fas fa-map-pin mr-1 text-red-400"></i>{{ itinerary[currentDayIndex].location }}</span>
+						<span>{{ itinerary[currentDayIndex].weather }} <i class="fas fa-cloud text-gray-300 ml-1"></i></span>
+					</div>
+
+					<div class="relative">
+						<div class="timeline-line"></div>
+						
+						<div v-for="(spot, sIndex) in itinerary[currentDayIndex].spots" :key="sIndex" class="relative">
+							<div :class="spot.transport ? 'mb-3' : 'mb-8'" class="relative pl-10 group">
+								<div class="absolute left-0 top-1.5 w-8 h-8 bg-white border-2 border-pink-200 rounded-full flex items-center justify-center z-10 shadow-sm group-hover:border-pink-400 transition">
+									<i :class="spot.icon" class="text-pink-400 text-xs"></i>
+								</div>
+								
+								<div class="bg-[#fdfbf7] p-3 rounded-lg border border-solid border-gray-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[3px_3px_0px_0px_rgba(251,113,133,0.2)] transition duration-200 relative">
+									<div class="flex justify-between items-start">
+										<h3 class="font-bold text-gray-700 text-base">
+											<span class="text-pink-500 font-mono text-base mr-1">{{ spot.time }}</span> {{ spot.name }}
+										</h3>
+										<a :href="spot.mapUrl" target="_blank" class="text-gray-400 hover:text-blue-500 text-lg transition-colors p-1" title="開啟導航">
+											<i class="fas fa-location-arrow"></i>
+										</a>
+									</div>
+									<p class="text-sm text-gray-500 mt-2 leading-relaxed border-l-2 border-pink-200 pl-3 font-light">{{ spot.desc }}</p>
+									<div v-if="spot.note" class="mt-3">
+										<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded shadow-sm border border-yellow-200 inline-block transform -rotate-1">
+											<i class="fas fa-pen-fancy mr-1"></i>{{ spot.note }}
+										</span>
+									</div>
+								</div>
+							</div>
+
+							<div v-if="spot.transport" class="relative mb-5 z-10">
+								<div class="absolute left-[12px] top-1.5 w-2 h-2 rounded-full z-10"></div>
+								<div class="pl-10 text-xs text-gray-500 font-medium pt-1 flex items-center">
+									<i :class="spot.transportIcon" class="mr-1.5 text-gray-400"></i>
+									{{ spot.transport }}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+            <section v-if="currentTab === 'shopping'" class="space-y-6 animate-fade-in">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">
+                    <div class="flex justify-between items-center mb-6 border-b-2 border-dotted border-gray-300 pb-2">
+                        <h2 class="text-xl font-bold text-gray-600">🛍️ 購物必買</h2>
+                        <button 
+                            @click="isAddShopOpen = !isAddShopOpen" 
+                            class="text-xs font-bold transition px-2 py-1 rounded"
+                            :class="isAddShopOpen ? 'text-gray-400 border border-gray-300 hover:bg-gray-50' : 'text-yellow-600 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200'"
+                        >
+                            {{ isAddShopOpen ? '取消' : '＋ 新增' }}
+                        </button>
+                    </div>
+                    
+                    <div v-show="isAddShopOpen" class="mb-6 mt-2 bg-[#fffdf5] p-4 rounded-lg border border-yellow-200 shadow-inner">
+                        <label class="text-xs text-gray-400 mb-1 block">店鋪名稱</label>
+                        <div class="flex gap-2">
+                            <input v-model="newShopNameInput" type="text" placeholder="松本清、Loft" class="border-b-2 border-yellow-200 bg-transparent p-2 w-full focus:outline-none focus:border-yellow-400 placeholder-gray-300 text-sm">
+                            <button @click="addShop" class="bg-yellow-400 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-yellow-500 transition whitespace-nowrap">
+                                建立
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-for="(shop, index) in shoppingList" :key="index" class="mb-6 bg-white rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,0.05)] border border-gray-100 overflow-hidden">
+                        <div @click="shop.isOpen = !shop.isOpen" class="p-3 flex justify-between items-center cursor-pointer border-b border-gray-100 hover:bg-gray-50">
+                            <h3 class="font-bold text-gray-700 flex items-center text-sm">
+                                <span class="w-3 h-3 rounded-full bg-yellow-400 mr-2 flex-shrink-0"></span>
+                                <span class="truncate">{{ shop.shopName }}</span>
+                                <span class="ml-2 text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex-shrink-0">{{ shop.items.length }}</span>
+                            </h3>
+                            <i :class="shop.isOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-gray-300 text-xs"></i>
+                        </div>
+                        
+                        <ul v-show="shop.isOpen" class="p-3 space-y-2 bg-yellow-50/30">
+                            <li v-for="(item, iIndex) in shop.items" :key="iIndex" class="flex items-center group mb-2 border-b border-gray-200 pb-2 border-dashed last:border-0 last:pb-0">
+                                <input type="checkbox" :id="`item-${index}-${iIndex}`" v-model="item.checked" class="w-4 h-4 text-yellow-500 rounded border-gray-300 focus:ring-yellow-400 cursor-pointer flex-shrink-0">
+                                
+                                <div class="flex-grow flex items-center justify-between ml-3 overflow-hidden">
+                                    <label :for="`item-${index}-${iIndex}`" :class="{'line-through text-gray-300': item.checked}" class="cursor-pointer select-none text-gray-700 text-sm truncate pr-2">
+                                        {{ item.name }}
+                                    </label>
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <div class="relative w-8 h-8 flex items-center justify-center">
+                                            <div v-if="item.image" class="relative w-full h-full">
+                                                <img :src="item.image" @click="openLightbox(item.image)" class="w-8 h-8 object-cover rounded shadow-sm border border-gray-200 cursor-pointer" alt="商品照片">
+                                                <label :for="`upload-${index}-${iIndex}`" class="absolute -bottom-1 -right-1 bg-white border border-gray-300 rounded-full w-[16px] h-[16px] flex items-center justify-center cursor-pointer shadow-sm z-10">
+                                                    <i class="fas fa-sync-alt text-[8px] text-gray-500"></i>
+                                                </label>
+                                            </div>
+                                            <label v-else :for="`upload-${index}-${iIndex}`" class="cursor-pointer w-8 h-8 bg-white border border-gray-200 rounded flex items-center justify-center text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 transition shadow-sm">
+                                                <i class="fas fa-camera text-xs"></i>
+                                            </label>
+                                            <input type="file" :id="`upload-${index}-${iIndex}`" accept="image/*" class="hidden" @change="uploadImage($event, item)">
+                                        </div>
+
+                                        <button @click="deleteItem(index, iIndex)" class="text-gray-300 hover:text-red-400 p-1 transition opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                            
+                            <li class="flex items-center mt-3 pt-2">
+                                <i class="fas fa-plus text-gray-300 text-xs mr-2"></i>
+                                <input v-model="shop.newItemInput" 
+                                       @keyup.enter="addItemToShop(shop)"
+                                       type="text" 
+                                       placeholder="新增商品..." 
+                                       class="flex-grow text-sm bg-transparent border-b border-gray-300 focus:outline-none focus:border-yellow-400 placeholder-gray-400 pb-1">
+                                <button @click="addItemToShop(shop)" class="ml-2 text-yellow-500 hover:text-yellow-600">
+                                    <i class="fas fa-pen text-sm"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section v-if="currentTab === 'packing'" class="space-y-6 animate-fade-in">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">
+                    
+                    <div class="flex justify-between items-center mb-6 border-b-2 border-dotted border-gray-300 pb-2">
+                        <h2 class="text-xl font-bold text-gray-600">🧳 行李檢查表</h2>
+                        <button 
+                            @click="isAddPackingCatOpen = !isAddPackingCatOpen" 
+                            class="text-xs font-bold transition px-2 py-1 rounded"
+                            :class="isAddPackingCatOpen ? 'text-gray-400 border border-gray-300 hover:bg-gray-50' : 'text-green-600 bg-green-50 hover:bg-green-100 border border-green-200'"
+                        >
+                            {{ isAddPackingCatOpen ? '取消' : '＋ 新增' }}
+                        </button>
+                    </div>
+                    
+                    <div v-show="isAddPackingCatOpen" class="mb-6 mt-2 bg-[#fffdf5] p-4 rounded-lg border border-green-200 shadow-inner">
+                        <label class="text-xs text-gray-400 mb-1 block">分類名稱</label>
+                        <div class="flex gap-2">
+                            <input v-model="newPackingCatInput" type="text" placeholder="藥品、衣物" class="border-b-2 border-green-200 bg-transparent p-2 w-full focus:outline-none focus:border-green-400 placeholder-gray-300 text-sm">
+                            <button @click="addPackingCategory" class="bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-green-600 transition whitespace-nowrap">
+                                建立
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-for="(category, cIndex) in packingList" :key="cIndex" class="mb-4 bg-white rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,0.05)] border border-gray-100 overflow-hidden relative z-10">
+                        <div @click="category.isOpen = !category.isOpen" class="p-3 flex justify-between items-center cursor-pointer border-b border-gray-100 hover:bg-gray-50">
+                            <h3 class="font-bold text-gray-700 flex items-center text-sm">
+                                <span class="w-3 h-3 rounded-full bg-green-400 mr-2"></span>
+                                {{ category.title }}
+                                <span class="ml-2 text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{{ category.items.length }}</span>
+                            </h3>
+                            <i :class="category.isOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-gray-300 text-xs"></i>
+                        </div>
+
+                        <div v-show="category.isOpen" class="p-4 bg-green-50/30">
+                            <div class="grid grid-cols-1 gap-3 mb-3">
+                                <div v-for="(item, iIndex) in category.items" :key="iIndex" 
+                                     class="p-2 rounded border-2 flex items-center justify-between transition cursor-pointer"
+                                     @click="item.checked = !item.checked"
+                                     :class="{'bg-green-50 border-green-200 opacity-60': item.checked, 'bg-white border-gray-100 hover:border-green-200': !item.checked}">
+                                    
+                                    <div class="flex items-center flex-grow overflow-hidden">
+                                        <div :class="{'bg-green-400 border-green-400': item.checked, 'bg-white border-gray-300': !item.checked}" class="w-4 h-4 border rounded mr-2 flex items-center justify-center text-white text-[10px] transition-colors flex-shrink-0">
+                                            <i v-if="item.checked" class="fas fa-check"></i>
+                                        </div>
+                                        <span :class="{'text-green-700 line-through': item.checked, 'text-gray-600': !item.checked}" class="text-sm truncate">{{ item.name }}</span>
+                                    </div>
+                                    <button @click.stop="deletePackingItem(cIndex, iIndex)" class="text-gray-300 hover:text-red-400 ml-1">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center pt-2 border-t-2 border-dotted border-gray-200 mt-2">
+                                <i class="fas fa-plus text-gray-300 text-xs mr-2"></i>
+                                <input v-model="category.newItemInput" 
+                                       @keyup.enter="addItemToCategory(category)"
+                                       type="text" 
+                                       placeholder="新增物品..." 
+                                       class="flex-grow text-sm bg-transparent border-b border-gray-300 focus:outline-none focus:border-green-400 placeholder-gray-400 pb-1">
+                                <button @click="addItemToCategory(category)" class="ml-2 text-green-500 hover:text-green-600">
+                                    <i class="fas fa-pen text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section v-if="currentTab === 'expenses'" class="space-y-6 animate-fade-in">
+                
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-blue-200 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-500 mb-1">Total Expenses</h2>
+                        <p class="text-xs text-gray-400">總支出 (TWD)</p>
+                    </div>
+                    <div class="text-2xl font-bold text-blue-500 font-mono tracking-wide">
+                        NT$ {{ formatNumber(totalExpenses) }}
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-gray-500 text-xs tracking-widest"><i class="fas fa-sync-alt mr-1"></i>匯率換算</h3>
+                        <span class="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Live</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative w-[45%]">
+                            <input type="number" v-model="calcJpy" placeholder="JPY" class="w-full p-2 rounded-lg font-mono bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 text-lg">
+                        </div>
+                        <i class="fas fa-arrow-right text-gray-300 text-xs"></i>
+                        <div class="relative w-[45%]">
+                            <div class="w-full p-2 rounded-lg font-mono bg-blue-50/50 border border-blue-100 text-blue-600 text-lg font-bold text-right h-[46px] overflow-hidden">
+                                {{ calcJpy ? formatNumber((calcJpy * exchangeRate).toFixed(0)) : 0 }}
+                            </div>
+                            <span class="absolute left-2 top-3 text-[10px] text-blue-300 font-bold">TWD</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2 text-right">Rate: {{ exchangeRate }}</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                        <h2 class="text-lg font-bold text-gray-600">💰 記帳本</h2>
+                        <button 
+                            @click="isAddExpenseOpen = !isAddExpenseOpen" 
+                            class="text-xs font-bold transition px-2 py-1 rounded"
+                            :class="isAddExpenseOpen ? 'text-gray-400 border border-gray-300 hover:bg-gray-50' : 'text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200'"
+                        >
+                            {{ isAddExpenseOpen ? '取消' : '＋ 新增' }}
+                        </button>
+                    </div>
+                    
+                    <div v-show="isAddExpenseOpen" class="bg-gray-50 p-3 rounded-lg mb-6 border border-gray-100">
+                        <div class="grid grid-cols-1 gap-2">
+                            <input type="date" v-model="newExpense.date" class="border border-gray-200 p-2 text-sm rounded w-full text-gray-600 bg-white focus:outline-none focus:ring-1 focus:ring-blue-300">
+                            <input type="text" v-model="newExpense.item" placeholder="項目 (如: 晚餐)" class="border border-gray-200 p-2 text-sm rounded w-full bg-white focus:outline-none focus:ring-1 focus:ring-blue-300">
+                            <div class="flex gap-2">
+                                <input type="number" v-model="newExpense.amount" placeholder="金額" class="border border-gray-200 p-2 text-sm rounded w-full bg-white focus:outline-none focus:ring-1 focus:ring-blue-300">
+                                <select v-model="newExpense.currency" class="border border-gray-200 p-2 text-sm rounded bg-white w-20 focus:outline-none">
+                                    <option value="JPY">JPY</option>
+                                    <option value="TWD">TWD</option>
+                                </select>
+                            </div>
+                            <button @click="addExpense" class="bg-blue-400 text-white py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-500 transition mt-1">
+                                寫入帳本
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="Object.keys(groupedExpenses).length > 0">
+                        <div v-for="(items, date) in groupedExpenses" :key="date" class="mb-4 border border-blue-100 rounded-lg overflow-hidden">
+                            
+                            <div @click="toggleExpenseDay(date)" class="bg-blue-50 p-3 flex justify-between items-center cursor-pointer hover:bg-blue-100 transition">
+                                <span class="font-bold text-gray-700 text-sm">{{ date }}</span>
+                                <div class="flex items-center">
+                                    <span class="font-mono text-blue-600 font-bold text-sm mr-3">NT$ {{ formatNumber(calculateDayTotal(items)) }}</span>
+                                    <i :class="expenseDayStates[date] ? 'fa-chevron-up' : 'fa-chevron-down'" class="text-blue-400 text-xs"></i>
+                                </div>
+                            </div>
+
+                            <div v-show="expenseDayStates[date]" class="bg-white">
+                                <div v-for="exp in items" :key="exp.id" class="flex justify-between items-center border-b border-gray-50 p-3 hover:bg-gray-50 last:border-0">
+                                    <div class="max-w-[50%]">
+                                        <div class="flex items-center text-sm mb-1">
+                                            <h3 class="font-bold text-gray-600 text-sm mr-2 truncate">{{ exp.item }}</h3>
+                                            <span v-if="exp.currency === 'JPY'" class="text-[10px] bg-pink-100 text-pink-500 px-1.5 rounded flex-shrink-0">JPY</span>
+                                            <span v-else class="text-[10px] bg-green-100 text-green-600 px-1.5 rounded flex-shrink-0">TWD</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="text-right">
+                                            <div class="font-bold text-gray-700 font-mono text-base">NT$ {{ formatNumber(exp.finalTwd) }}</div>
+                                            <div v-if="exp.currency === 'JPY'" class="text-[10px] text-gray-400 font-mono">
+                                                (¥ {{ formatNumber(exp.amount) }})
+                                            </div>
+                                        </div>
+                                        <button @click="deleteExpense(exp)" class="text-gray-300 hover:text-red-400 transition p-1">
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center text-gray-300 py-8 text-sm font-light italic">
+                        還沒有紀錄，開始記帳吧... 🖊️
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <nav class="bg-white border-t border-gray-200 flex justify-around items-center h-[68px] z-50 flex-shrink-0 pb-2 pt-1 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+            <button @click="currentTab = 'info'" :class="currentTab === 'info' ? 'text-purple-500' : 'text-gray-400 hover:text-purple-300'" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors">
+                <i class="fas fa-info-circle text-xl"></i>
+                <span class="text-[10px] font-bold">資訊</span>
+            </button>
+            <button @click="currentTab = 'itinerary'" :class="currentTab === 'itinerary' ? 'text-pink-500' : 'text-gray-400 hover:text-pink-300'" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors">
+                <i class="fas fa-calendar-alt text-xl"></i>
+                <span class="text-[10px] font-bold">行程</span>
+            </button>
+            <button @click="currentTab = 'shopping'" :class="currentTab === 'shopping' ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-400'" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors">
+                <i class="fas fa-shopping-bag text-xl"></i>
+                <span class="text-[10px] font-bold">購物</span>
+            </button>
+            <button @click="currentTab = 'packing'" :class="currentTab === 'packing' ? 'text-green-500' : 'text-gray-400 hover:text-green-400'" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors">
+                <i class="fas fa-suitcase text-xl"></i>
+                <span class="text-[10px] font-bold">行李</span>
+            </button>
+            <button @click="currentTab = 'expenses'" :class="currentTab === 'expenses' ? 'text-blue-500' : 'text-gray-400 hover:text-blue-400'" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors">
+                <i class="fas fa-wallet text-xl"></i>
+                <span class="text-[10px] font-bold">記帳</span>
+            </button>
+        </nav>
+
+        <div v-if="lightboxImage" class="absolute inset-0 bg-black/85 z-[80] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity" @click="closeLightbox">
+            <button @click.stop="closeLightbox" class="absolute top-6 right-6 text-white/80 hover:text-white text-3xl focus:outline-none z-[90]">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <img :src="lightboxImage" class="max-w-full max-h-[80%] object-contain rounded-lg shadow-2xl" @click.stop alt="放大照片">
+        </div>
+
+    </div>
+</div>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAiaMwRKgoHjMQZYKYooI0XwyiSDXAOS6o",
+	databaseURL: "https://osaka-trip-2026-e0ca5-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    authDomain: "osaka-trip-2026-e0ca5.firebaseapp.com",
+    projectId: "osaka-trip-2026-e0ca5",
+    storageBucket: "osaka-trip-2026-e0ca5.firebasestorage.app",
+    messagingSenderId: "572950572670",
+    appId: "1:572950572670:web:f28ff24621cef5ece9b22f"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+
+    const { createApp, ref, computed } = Vue;
+
+    createApp({
+        setup() {
+            const currentTab = ref('itinerary'); 
+			const currentDayIndex = ref(0); 
+            const calcJpy = ref(null);
+            const exchangeRate = ref(0.215);
+			const weatherForecast = ref([
+				{ date: '4/16 (Thu)', temp: '14~20°C', desc: '多雲時晴', icon: 'fas fa-cloud-sun', color: 'text-orange-400' },
+				{ date: '4/17 (Fri)', temp: '13~19°C', desc: '晴朗', icon: 'fas fa-sun', color: 'text-red-400' },
+				{ date: '4/18 (Sat)', temp: '15~22°C', desc: '晴時多雲', icon: 'fas fa-cloud-sun', color: 'text-orange-400' },
+				{ date: '4/19 (Sun)', temp: '16~21°C', desc: '多雲', icon: 'fas fa-cloud', color: 'text-gray-400' },
+				{ date: '4/20 (Mon)', temp: '14~18°C', desc: '短暫雨', icon: 'fas fa-cloud-rain', color: 'text-blue-400' },
+				{ date: '4/21 (Tue)', temp: '13~19°C', desc: '多雲轉晴', icon: 'fas fa-cloud-sun', color: 'text-orange-400' }
+			]);
+			// 控制天氣預報的開關，預設為 true (展開)
+			const isWeatherOpen = ref(true);
+			
+            const formatNumber = (val) => {
+                if (!val) return '0';
+                return Number(val).toLocaleString();
+            };
+
+            const isAddShopOpen = ref(false);
+            const newShopNameInput = ref('');
+
+            const isAddPackingCatOpen = ref(false);
+            const newPackingCatInput = ref('');
+
+            const isAddExpenseOpen = ref(false);
+            const newExpense = ref({ date: '2026-04-16', item: '', amount: '', currency: 'JPY' });
+            const expenseList = ref([]);
+            const expenseDayStates = ref({}); 
+
+            const lightboxImage = ref(null);
+            const openLightbox = (imgSrc) => { lightboxImage.value = imgSrc; };
+            const closeLightbox = () => { lightboxImage.value = null; };
+
+            const totalExpenses = computed(() => expenseList.value.reduce((sum, item) => sum + item.finalTwd, 0));
+
+            const groupedExpenses = computed(() => {
+                const sorted = [...expenseList.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+                const groups = {};
+                sorted.forEach(item => {
+                    if (!groups[item.date]) {
+                        groups[item.date] = [];
+                        if (expenseDayStates.value[item.date] === undefined) {
+                            expenseDayStates.value[item.date] = true;
+                        }
+                    }
+                    groups[item.date].push(item);
+                });
+                return groups;
+            });
+
+            const addShop = () => {
+                if (!newShopNameInput.value) return;
+                shoppingList.value.push({ shopName: newShopNameInput.value, isOpen: true, items: [], newItemInput: '' });
+                newShopNameInput.value = '';
+                isAddShopOpen.value = false;
+            };
+
+            const addItemToShop = (shop) => {
+                if (!shop.newItemInput) return;
+                shop.items.push({ name: shop.newItemInput, checked: false, image: null });
+                shop.newItemInput = '';
+            };
+
+            const deleteItem = (shopIndex, itemIndex) => {
+                shoppingList.value[shopIndex].items.splice(itemIndex, 1);
+            };
+
+            const uploadImage = (event, item) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        item.image = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+                event.target.value = '';
+            };
+
+            const addPackingCategory = () => {
+                if (!newPackingCatInput.value) return;
+                packingList.value.push({ title: newPackingCatInput.value, isOpen: true, items: [], newItemInput: '' });
+                newPackingCatInput.value = '';
+                isAddPackingCatOpen.value = false;
+            };
+
+            const addItemToCategory = (category) => {
+                if (!category.newItemInput) return;
+                category.items.push({ name: category.newItemInput, checked: false });
+                category.newItemInput = '';
+            };
+
+            const deletePackingItem = (catIndex, itemIndex) => {
+                packingList.value[catIndex].items.splice(itemIndex, 1);
+            };
+
+            const addExpense = () => {
+				if (!newExpense.value.item || !newExpense.value.amount) return;
+				const amount = parseFloat(newExpense.value.amount);
+				const finalTwd = newExpense.value.currency === 'JPY' ? Math.round(amount * exchangeRate.value) : Math.round(amount);
+
+				const dataToPush = {
+					date: newExpense.value.date,
+					item: newExpense.value.item,
+					amount: amount,
+					currency: newExpense.value.currency,
+					finalTwd: finalTwd,
+					createdAt: Date.now()
+				};
+
+				// 直接推送到 Firebase，不用手動 push 到 expenseList.value
+				// 因為 onValue 會自動幫妳監聽並更新畫面
+				push(expenseRef, dataToPush);
+
+				newExpense.value.item = ''; 
+				newExpense.value.amount = '';
+			};
+
+            const deleteExpense = (itemToDelete) => {
+                const index = expenseList.value.findIndex(item => item.id === itemToDelete.id);
+                if (index !== -1) {
+                    expenseList.value.splice(index, 1);
+                }
+            };
+
+            const toggleExpenseDay = (date) => {
+                expenseDayStates.value[date] = !expenseDayStates.value[date];
+            };
+
+            const calculateDayTotal = (items) => {
+                return items.reduce((sum, item) => sum + item.finalTwd, 0);
+            };
+			
+			onValue(expenseRef, (snapshot) => {
+			const data = snapshot.val();
+				if (data) {
+					// 將 Firebase 的物件格式轉回陣列
+					expenseList.value = Object.keys(data).map(key => ({
+						id: key,
+						...data[key]
+					})).reverse();
+				} else {
+					expenseList.value = [];
+				}
+			});
+
+            const shoppingList = ref([
+                { shopName: '大國藥妝', isOpen: true, newItemInput: '', items: [
+                    { name: 'EVE 止痛藥 (藍)', checked: false, image: null }, 
+                    { name: 'DHC 維他命C', checked: true, image: null }, 
+                    { name: '蒸氣眼罩', checked: false, image: null }
+                ]},
+                { shopName: 'Donki 唐吉訶德', isOpen: true, newItemInput: '', items: [
+                    { name: '一蘭拉麵包', checked: false, image: null }, 
+                    { name: '抹茶巧克力', checked: false, image: null }
+                ]}
+            ]);
+
+            const packingList = ref([
+                { title: '📄 證件與錢包', isOpen: true, newItemInput: '', items: [{ name: '護照', checked: false }, { name: '日幣現鈔', checked: false }, { name: '信用卡', checked: false }, { name: '網卡/漫遊', checked: false }, { name: 'Visit Japan Web QR', checked: false }] },
+                { title: '📱 電子產品', isOpen: true, newItemInput: '', items: [{ name: '手機充電器', checked: false }, { name: '行動電源', checked: false }, { name: '轉接頭', checked: false }, { name: 'USJ APP 下載', checked: false }] }
+            ]);
+
+            const itinerary = ref([
+			{
+				date: 'Day 1 | 4/16 (Thu)', 
+				title: '抵達大阪 & 道頓堀宵夜', 
+				location: '關西機場 → 大國町 → 道頓堀', 
+				weather: '舒適', 
+				isOpen: true,
+				spots: [
+					{ 
+						time: '19:00', 
+						name: '關西國際機場', 
+						icon: 'fas fa-plane-arrival', 
+						desc: '抵達後可購買交通卡，方便後續行程。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Kansai+International+Airport',
+						// 使用穩定的 picsum 圖庫，seed=kix 確保圖片固定
+						imageUrl: 'https://picsum.photos/seed/kix/600/600', 
+						transport: '南海電鐵至難波(45min)→地鐵御堂筋線至大國町(5min)→步行約5min (約1hr)', 
+						transportIcon: 'fas fa-train' 
+					},
+					{ 
+						time: '20:58', 
+						name: '住宿', 
+						icon: 'fas fa-bed', 
+						desc: '先整理行李再出門。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment+Osaka',
+						imageUrl: 'https://picsum.photos/seed/room/600/600',
+						transport: '步行前往 (15min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '22:13', 
+						name: '一蘭 道頓堀店別館', 
+						icon: 'fas fa-utensils', 
+						desc: '晚間人潮多，建議使用販賣機快速點餐。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Ichiran+Dotonbori+Annex',
+						imageUrl: 'https://picsum.photos/seed/ramen/600/600'
+					}
+				]
+			},
+			{
+				date: 'Day 2 | 4/17 (Fri)', 
+				title: '京都巡禮：伏見稻荷 & 清水寺', 
+				location: '京都', 
+				weather: '晴時多雲', 
+				isOpen: false,
+				spots: [
+					{ 
+						time: '08:00', 
+						name: '住宿 出發', 
+						icon: 'fas fa-bed', 
+						desc: '準備出發前往京都。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment+Osaka',
+						imageUrl: 'https://picsum.photos/seed/morning/600/600',
+						transport: '地鐵御堂筋線至梅田(15min)→JR奈良線至伏見稻荷站(45min)→步行約5min (約1hr)', 
+						transportIcon: 'fas fa-subway' 
+					},
+					{ 
+						time: '08:53', 
+						name: '伏見稻荷大社', 
+						icon: 'fas fa-torii-gate', 
+						desc: '早晨人潮多，建議提早出發。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Fushimi+Inari+Taisha',
+						imageUrl: 'https://picsum.photos/seed/torii/600/600',
+						transport: 'JR奈良線至京都站 (10min)', 
+						transportIcon: 'fas fa-train' 
+					},
+					{ 
+						time: '11:12', 
+						name: 'Katsukura – Kyoto Porta', 
+						icon: 'fas fa-utensils', 
+						desc: '午餐高峰需排隊，可先取號。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Katsukura+Kyoto+Porta',
+						imageUrl: 'https://picsum.photos/seed/pork/600/600',
+						transport: '京都站搭市巴士至五条坂(15min)→步行約10min (約25min)', 
+						transportIcon: 'fas fa-bus' 
+					},
+					{ 
+						time: '13:18', 
+						name: '清水寺', 
+						icon: 'fas fa-gopuram', 
+						desc: '高台景觀適合拍照。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Kiyomizu-dera',
+						imageUrl: 'https://picsum.photos/seed/temple/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '14:55', 
+						name: '產寧坂', 
+						icon: 'fas fa-store', 
+						desc: '古街氛圍濃厚，適合購買伴手禮。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Sannenzaka',
+						imageUrl: 'https://picsum.photos/seed/street1/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '15:31', 
+						name: '二寧坂（二年坂）', 
+						icon: 'fas fa-camera', 
+						desc: '石板路景色迷人。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Ninenzaka',
+						imageUrl: 'https://picsum.photos/seed/street2/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '16:02', 
+						name: '星巴克 京都二寧坂 Yasaka茶屋店', 
+						icon: 'fas fa-coffee', 
+						desc: '町家風格星巴克，適合休息。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Starbucks+Kyoto+Ninenzaka+Yasaka+Chaya',
+						imageUrl: 'https://picsum.photos/seed/coffee/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '16:42', 
+						name: '京都八坂神社', 
+						icon: 'fas fa-moon', 
+						desc: '傍晚造訪更有氛圍。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Yasaka+Shrine+Kyoto',
+						imageUrl: 'https://picsum.photos/seed/shrine/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '17:47', 
+						name: '京都花見小路', 
+						icon: 'fas fa-map-signs', 
+						desc: '有機會看到舞妓。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Hanamikoji+Street+Kyoto',
+						imageUrl: 'https://picsum.photos/seed/geisha/600/600',
+						transport: '市巴士至四条站(10min)→步行約5min (約15min)', 
+						transportIcon: 'fas fa-bus' 
+					},
+					{ 
+						time: '18:31', 
+						name: '錦市場', 
+						icon: 'fas fa-store-alt', 
+						desc: '美食集中地，適合邊逛邊吃。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Nishiki+Market+Kyoto',
+						imageUrl: 'https://picsum.photos/seed/market/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '19:28', 
+						name: 'Ginsui 銀水', 
+						icon: 'fas fa-utensils', 
+						desc: '晚餐建議預約。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Ginsui+Kyoto',
+						imageUrl: 'https://picsum.photos/seed/dinner/600/600',
+						transport: 'JR奈良線至梅田(45min)→地鐵御堂筋線至大國町(15min)→步行約5min (約1hr)', 
+						transportIcon: 'fas fa-train' 
+					},
+					{ 
+						time: '22:06', 
+						name: '住宿', 
+						icon: 'fas fa-bed', 
+						desc: '晚間列車班次正常，但建議確認末班車。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment+Osaka',
+						imageUrl: 'https://picsum.photos/seed/train/600/600'
+					}
+				]
+			},
+			{
+				date: 'Day 3 | 4/18 (Sat)', 
+				title: '勝尾寺達摩 & 梅田購物狂歡', 
+				location: '箕面 → 梅田', 
+				weather: '晴朗', 
+				isOpen: false,
+				spots: [
+					{ 
+						time: '08:00', 
+						name: '住宿', 
+						icon: 'fas fa-bed', 
+						desc: '準備好一日交通卡。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment+Osaka',
+						imageUrl: 'https://picsum.photos/seed/ready/600/600',
+						transport: '地鐵御堂筋線至梅田(15min)→阪急至箕面(30min)→巴士/計程車上山(35min) (1hr 20min)', 
+						transportIcon: 'fas fa-train' 
+					},
+					{ 
+						time: '09:20', 
+						name: '勝尾寺', 
+						icon: 'fas fa-praying-hands', 
+						desc: '寺內「勝運達摩」很有特色。', 
+						note: '買個小達摩',
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Katsuo-ji',
+						imageUrl: 'https://picsum.photos/seed/daruma/600/600',
+						transport: '搭巴士回箕面(30min)→阪急電鐵至梅田(30min) (1hr)', 
+						transportIcon: 'fas fa-bus' 
+					},
+					{ 
+						time: '12:30', 
+						name: '大丸梅田店', 
+						icon: 'fas fa-shopping-bag', 
+						desc: '地下美食街適合午餐。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Daimaru+Umeda',
+						imageUrl: 'https://picsum.photos/seed/daimaru/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '13:34', 
+						name: 'LUCUA Osaka', 
+						icon: 'fas fa-store', 
+						desc: '潮流服飾與生活用品齊全。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=LUCUA+Osaka',
+						imageUrl: 'https://picsum.photos/seed/lucua/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '14:36', 
+						name: 'LUCUA 1100', 
+						icon: 'fas fa-gem', 
+						desc: '偏向高端品牌。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=LUCUA+1100',
+						imageUrl: 'https://picsum.photos/seed/lucua1100/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '15:44', 
+						name: 'GRAND GREEN OSAKA', 
+						icon: 'fas fa-tree', 
+						desc: '新開發區域，建築設計現代，適合拍照。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=GRAND+GREEN+OSAKA',
+						imageUrl: 'https://picsum.photos/seed/green/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '16:19', 
+						name: 'GRAND FRONT 大阪', 
+						icon: 'fas fa-building', 
+						desc: '餐廳與商店眾多。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Grand+Front+Osaka',
+						imageUrl: 'https://picsum.photos/seed/grandfront/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '16:52', 
+						name: '友都八喜相機多媒體梅田店', 
+						icon: 'fas fa-camera', 
+						desc: '電子產品齊全，購物前可比價。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Yodobashi+Camera+Multimedia+Umeda',
+						imageUrl: 'https://picsum.photos/seed/yodobashi/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '17:58', 
+						name: '梅田EST', 
+						icon: 'fas fa-tshirt', 
+						desc: '以年輕人時尚品牌為主。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Umeda+EST',
+						imageUrl: 'https://picsum.photos/seed/est/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '18:29', 
+						name: 'HEP FIVE', 
+						icon: 'fas fa-dharmachakra', 
+						desc: '紅色摩天輪是地標，適合拍照打卡。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=HEP+FIVE',
+						imageUrl: 'https://picsum.photos/seed/hepfive/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '19:04', 
+						name: '阪急梅田本店', 
+						icon: 'fas fa-gift', 
+						desc: '高端百貨，適合選購伴手禮。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Hankyu+Umeda+Main+Store',
+						imageUrl: 'https://picsum.photos/seed/hankyu/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '19:38', 
+						name: 'Hanshin Department Store', 
+						icon: 'fas fa-utensils', 
+						desc: '地下美食街有大阪特色小吃。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Hanshin+Department+Store+Umeda',
+						imageUrl: 'https://picsum.photos/seed/hanshin/600/600',
+						transport: '步行前往 (15min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '20:20', 
+						name: '梅田藍天大樓', 
+						icon: 'fas fa-city', 
+						desc: '空中庭園展望台夜景壯觀。', 
+						note: '建議提前購票',
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Umeda+Sky+Building',
+						imageUrl: 'https://picsum.photos/seed/skybuilding/600/600',
+						transport: '地鐵御堂筋線至大國町(15min)→步行約5min (30min)', 
+						transportIcon: 'fas fa-subway' 
+					},
+					{ 
+						time: '21:51', 
+						name: '住宿', 
+						icon: 'fas fa-bed', 
+						desc: '返回住宿，結束一天滿滿的行程。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment+Osaka',
+						imageUrl: 'https://picsum.photos/seed/nightrest/600/600'
+					}
+				]
+			},
+			{
+				date: 'Day 4 | 4/19 (Sun)', 
+				title: '黑門市場 & 大阪城 & 心齋橋購物', 
+				location: '市區 → 心齋橋', 
+				weather: '多雲', 
+				isOpen: false,
+				spots: [
+					{ 
+						time: '08:30', 
+						name: '住宿 出發', 
+						icon: 'fas fa-bed', 
+						desc: '準備出發前往早市。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment',
+						imageUrl: 'https://picsum.photos/seed/morning4/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '08:43', 
+						name: '黑門市場', 
+						icon: 'fas fa-fish', 
+						desc: '早市最熱鬧，適合品嚐新鮮海鮮。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=黑門市場',
+						imageUrl: 'https://picsum.photos/seed/kuromon/600/600',
+						transport: '地鐵御堂筋線至本町(5min)→中央線至森之宮(10min)→步行約10min (約25min)', 
+						transportIcon: 'fas fa-subway' 
+					},
+					{ 
+						time: '10:05', 
+						name: '大阪城公園', 
+						icon: 'fas fa-tree', 
+						desc: '大阪城天守閣可登高眺望。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=大阪城公園',
+						imageUrl: 'https://picsum.photos/seed/osakacastle/600/600',
+						transport: '中央線至本町(10min)→御堂筋線至難波(10min)→步行約5min (約25min)', 
+						transportIcon: 'fas fa-subway' 
+					},
+					{ 
+						time: '12:27', 
+						name: '難波CITY 本館', 
+						icon: 'fas fa-shopping-bag', 
+						desc: '購物與餐飲選擇豐富。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=難波CITY+本館',
+						imageUrl: 'https://picsum.photos/seed/nambacity/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '13:33', 
+						name: '高島屋 大阪店', 
+						icon: 'fas fa-gift', 
+						desc: '百貨公司，適合伴手禮採買。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=高島屋+大阪店',
+						imageUrl: 'https://picsum.photos/seed/takashimaya/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '14:40', 
+						name: 'MIRACLE WORLD OSAKA', 
+						icon: 'fas fa-gamepad', 
+						desc: '娛樂設施，適合短暫體驗。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=MIRACLE+WORLD+OSAKA',
+						imageUrl: 'https://picsum.photos/seed/miracle/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '15:13', 
+						name: 'Edion 愛電王 難波總店', 
+						icon: 'fas fa-tv', 
+						desc: '大型電器行，電子產品齊全。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Edion+愛電王+難波總店',
+						imageUrl: 'https://picsum.photos/seed/edion/600/600',
+						transport: '步行前往 (5min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '16:15', 
+						name: 'gashacoco 難波戎橋筋', 
+						icon: 'fas fa-box-open', 
+						desc: '扭蛋專門店，適合收藏。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=gashacoco+難波戎橋筋',
+						imageUrl: 'https://picsum.photos/seed/gacha/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '17:27', 
+						name: '大丸心齋橋店 本館', 
+						icon: 'fas fa-shopping-bag', 
+						desc: '心齋橋商圈核心百貨。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=大丸心齋橋店+本館',
+						imageUrl: 'https://picsum.photos/seed/daimaru2/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '18:35', 
+						name: 'Yakiniku Nidoushi', 
+						icon: 'fas fa-utensils', 
+						desc: '晚餐建議預約。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Yakiniku+Nidoushi',
+						imageUrl: 'https://picsum.photos/seed/yakiniku/600/600',
+						transport: '地鐵御堂筋線至大國町(10min)→步行約5min (約15min)', 
+						transportIcon: 'fas fa-subway' 
+					},
+					{ 
+						time: '20:44', 
+						name: '住宿', 
+						icon: 'fas fa-bed', 
+						desc: '結束一天行程。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment',
+						imageUrl: 'https://picsum.photos/seed/night4/600/600'
+					}
+				]
+			},
+			{
+				date: 'Day 5 | 4/20 (Mon)', 
+				title: 'USJ 環球影城全日遊', 
+				location: 'Universal Studios', 
+				weather: '晴朗', 
+				isOpen: false,
+				spots: [
+					{ 
+						time: '07:30', 
+						name: '住宿 出發', 
+						icon: 'fas fa-bed', 
+						desc: '準備出發前往環球影城。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment',
+						imageUrl: 'https://picsum.photos/seed/morning5/600/600',
+						transport: '地鐵御堂筋線至西九條(15min)→JR夢咲線至環球城站(10min)→步行約5min (約30min)', 
+						transportIcon: 'fas fa-subway' 
+					},
+					{ 
+						time: '07:58', 
+						name: '日本環球影城 (USJ)', 
+						icon: 'fas fa-star', 
+						desc: '建議提早入園，熱門設施需快速通關。', 
+						note: '記得買 Express',
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=日本環球影城',
+						imageUrl: 'https://picsum.photos/seed/usj/600/600',
+						transport: 'JR夢咲線至西九條(10min)→地鐵御堂筋線至難波(15min)→步行約5min (約30min)', 
+						transportIcon: 'fas fa-train' 
+					},
+					{ 
+						time: '18:27', 
+						name: '福太郎大阪燒', 
+						icon: 'fas fa-utensils', 
+						desc: '大阪燒名店，晚餐高峰需排隊。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=福太郎大阪燒',
+						imageUrl: 'https://picsum.photos/seed/okonomiyaki/600/600',
+						transport: '地鐵御堂筋線至大國町(5min)→步行約5min (約10min)', 
+						transportIcon: 'fas fa-subway' 
+					},
+					{ 
+						time: '19:42', 
+						name: '住宿', 
+						icon: 'fas fa-bed', 
+						desc: '返回住宿，結束充滿歡樂的一天。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment',
+						imageUrl: 'https://picsum.photos/seed/night5/600/600'
+					}
+				]
+			},
+			{
+				date: 'Day 6 | 4/21 (Tue)', 
+				title: '木津市場 & 難波八阪 & 滿載而歸', 
+				location: '大國町 → 難波 → 關西機場', 
+				weather: '晴', 
+				isOpen: false,
+				spots: [
+					{ 
+						time: '09:00', 
+						name: '住宿 出發', 
+						icon: 'fas fa-door-open', 
+						desc: '出發前往早市，享受大阪的早晨。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment',
+						imageUrl: 'https://picsum.photos/seed/morning6/600/600',
+						transport: '地鐵御堂筋線至大國町(5min)→步行約10min (約15min)', 
+						transportIcon: 'fas fa-subway' 
+					},
+					{ 
+						time: '10:09', 
+						name: '木津市場', 
+						icon: 'fas fa-fish', 
+						desc: '早市最熱鬧，適合品嚐新鮮海鮮。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=木津市場',
+						imageUrl: 'https://picsum.photos/seed/kizu/600/600',
+						transport: '步行前往 (10min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '10:53', 
+						name: '難波八阪神社', 
+						icon: 'fas fa-landmark', 
+						desc: '特色獅子頭舞台造型，非常適合拍照。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=難波八阪神社',
+						imageUrl: 'https://picsum.photos/seed/nambayasaka/600/600',
+						transport: '步行前往 (15min)', 
+						transportIcon: 'fas fa-walking' 
+					},
+					{ 
+						time: '12:05', 
+						name: '住宿', 
+						icon: 'fas fa-suitcase-rolling', 
+						desc: '回住宿整理行李，準備退房。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Exia+Daikoku+AFP+Apartment',
+						imageUrl: 'https://picsum.photos/seed/packing/600/600',
+						transport: '地鐵御堂筋線至難波(5min)→南海電鐵至關西機場(45min) (約1hr)', 
+						transportIcon: 'fas fa-train' 
+					},
+					{ 
+						time: '13:13', 
+						name: '關西國際機場 (KIX)', 
+						icon: 'fas fa-plane-departure', 
+						desc: '建議提前抵達機場，預留辦理登機與安檢時間。', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Kansai+International+Airport',
+						imageUrl: 'https://picsum.photos/seed/airport/600/600',
+						transport: '辦理報到、托運行李、逛免稅店 (約2hr)', 
+						transportIcon: 'fas fa-shopping-bag' 
+					},
+					{ 
+						time: '15:10', 
+						name: '航班起飛', 
+						icon: 'fas fa-plane', 
+						desc: '帶著滿滿的回憶，平安回到溫暖的家！', 
+						mapUrl: 'https://www.google.com/maps/search/?api=1&query=Kansai+International+Airport',
+						imageUrl: 'https://picsum.photos/seed/flyhome/600/600'
+					}
+				]
+			}
+]);
+
+            return {
+                currentTab, calcJpy, exchangeRate, itinerary, currentDayIndex,weatherForecast,isWeatherOpen,
+                // 購物與圖片上傳
+                shoppingList, isAddShopOpen, newShopNameInput, addShop, addItemToShop, deleteItem, uploadImage,
+                // Lightbox
+                lightboxImage, openLightbox, closeLightbox,
+                // 行李
+                packingList, isAddPackingCatOpen, newPackingCatInput, addPackingCategory, addItemToCategory, deletePackingItem,
+                // 記帳
+                newExpense, expenseList, totalExpenses, addExpense, deleteExpense, isAddExpenseOpen,
+                groupedExpenses, expenseDayStates, toggleExpenseDay, calculateDayTotal, formatNumber
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
