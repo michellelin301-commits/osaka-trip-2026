@@ -112,9 +112,11 @@
             </div>
         </header>
 
-		<main class="flex-grow overflow-y-auto overflow-x-hidden px-4 space-y-8 pb-8 relative"
-			
+		<main 
+			class="flex-grow overflow-y-auto overflow-x-hidden px-4 space-y-8 pb-8 relative"
 			:class="currentTab === 'itinerary' ? 'pt-0' : 'pt-4'"
+			@touchstart="handleTouchStart"
+			@touchend="handleTouchEnd"
 		>
 
             <section v-if="currentTab === 'info'" class="space-y-6 animate-fade-in">
@@ -526,7 +528,7 @@
 
         </main>
 
-        <nav class="bg-white border-t border-gray-200 flex justify-around items-center h-[68px] z-50 flex-shrink-0 pb-2 pt-1 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <nav class="bg-white border-t border-gray-200 flex justify-around items-center h-[85px] z-50 flex-shrink-0 pb-5 pt-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
             <button @click="currentTab = 'info'" :class="currentTab === 'info' ? 'text-purple-500' : 'text-gray-400 hover:text-purple-300'" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors">
                 <i class="fas fa-info-circle text-xl"></i>
                 <span class="text-[10px] font-bold">資訊</span>
@@ -565,6 +567,39 @@
     createApp({
         setup() {
             const currentTab = ref('itinerary'); 
+			// 定義分頁順序
+			const tabs = ['info', 'itinerary', 'shopping', 'packing', 'expenses'];
+			
+			// 用於記錄觸控起始點
+			let touchStartX = 0;
+			let touchStartY = 0;
+
+			const handleTouchStart = (e) => {
+				touchStartX = e.changedTouches[0].screenX;
+				touchStartY = e.changedTouches[0].screenY;
+			};
+
+			const handleTouchEnd = (e) => {
+				const touchEndX = e.changedTouches[0].screenX;
+				const touchEndY = e.changedTouches[0].screenY;
+				
+				const diffX = touchStartX - touchEndX;
+				const diffY = touchStartY - touchEndY;
+
+				// 確保是水平滑動（水平位移大於垂直位移，且超過門檻 50 像素）
+				if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+					const currentIndex = tabs.indexOf(currentTab.value);
+					
+					if (diffX > 0 && currentIndex < tabs.length - 1) {
+						// 向左滑 -> 切換到下一個分頁
+						currentTab.value = tabs[currentIndex + 1];
+					} else if (diffX < 0 && currentIndex > 0) {
+						// 向右滑 -> 切換到上一個分頁
+						currentTab.value = tabs[currentIndex - 1];
+					}
+				}
+			};
+			
 			const currentDayIndex = ref(0); 
             const calcJpy = ref(null);
             const exchangeRate = ref(0.215);
@@ -1270,7 +1305,9 @@
                 packingList, isAddPackingCatOpen, newPackingCatInput, addPackingCategory, addItemToCategory, deletePackingItem,
                 // 記帳
                 newExpense, expenseList, totalExpenses, addExpense, deleteExpense, isAddExpenseOpen,
-                groupedExpenses, expenseDayStates, toggleExpenseDay, calculateDayTotal, formatNumber
+                groupedExpenses, expenseDayStates, toggleExpenseDay, calculateDayTotal, formatNumber,
+				// 選單頁面滑動
+				handleTouchStart,handleTouchEnd
             };
         }
     }).mount('#app');
