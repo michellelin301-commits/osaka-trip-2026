@@ -67,6 +67,27 @@
 			-ms-overflow-style: none; /* IE and Edge */
 			scrollbar-width: none; /* Firefox */
 		}
+		
+		/* 1. 鎖定全域，防止頁面回彈與水平滑動 */
+		html, body {
+			overflow: hidden;
+			height: 100%;
+			width: 100%;
+			position: fixed; /* 關鍵：防止 iOS 瀏覽器工具列縮放導致的位移 */
+			overscroll-behavior-y: none; /* 防止下拉重新整理 */
+		}
+
+		/* 2. 針對主內容區域開啟滑動 */
+		main {
+			overscroll-behavior-y: contain; /* 滾動只鎖定在此區域 */
+			-webkit-overflow-scrolling: touch; /* 讓 iOS 滑動更流暢 */
+		}
+
+		/* 3. 確保 sticky 標籤選單不會造成水平溢出 */
+		.hide-scrollbar {
+			-webkit-overflow-scrolling: touch;
+			width: calc(100% + 2rem); /* 補足 -mx-4 失去的寬度感 */
+		}
 
         [v-cloak] { display: none; }
     </style>
@@ -91,8 +112,8 @@
             </div>
         </header>
 
-		<main 
-			class="flex-grow overflow-y-auto px-4 space-y-8 pb-8 relative"
+		<main class="flex-grow overflow-y-auto overflow-x-hidden px-4 space-y-8 pb-8 relative"
+			
 			:class="currentTab === 'itinerary' ? 'pt-0' : 'pt-4'"
 		>
 
