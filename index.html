@@ -684,7 +684,27 @@
 			const selectedSpot = ref(null);
             const openSpotDetail = (spot) => { selectedSpot.value = spot; };
             const closeSpotDetail = () => { selectedSpot.value = null; };
+
+            // return { ... 原本的匯出內容 ... }
+
+            // ▼▼▼ 新增這一段：處理景點照片上傳 ▼▼▼
+            const uploadSpotImage = (event) => {
+				const file = event.target.files[0];
+				if (file) {
+					const reader = new FileReader();
+					reader.onload = (e) => {
+						// 直接覆蓋原本的 imageUrl，這樣 Vue 絕對會觸發畫面更新！
+						selectedSpot.value.imageUrl = e.target.result;
+					};
+					reader.readAsDataURL(file);
+				}
+				event.target.value = ''; // 清空 input
+			};
+            // ▲▲▲ 新增這一段 ▲▲▲
 			
+            const currentTab = ref('itinerary'); 
+            const tabs = ['info', 'itinerary', 'shopping', 'packing', 'expenses'];
+            
 			// ==========================================
             // Firebase 雲端即時同步 (Realtime Database)
             // ==========================================
@@ -750,27 +770,7 @@
             watch(todoList, (newVal) => {
                 if (!isSyncingFromCloud) tripRef.child('todos').set(newVal);
             }, { deep: true });
-
-            // return { ... 原本的匯出內容 ... }
-
-            // ▼▼▼ 新增這一段：處理景點照片上傳 ▼▼▼
-            const uploadSpotImage = (event) => {
-				const file = event.target.files[0];
-				if (file) {
-					const reader = new FileReader();
-					reader.onload = (e) => {
-						// 直接覆蓋原本的 imageUrl，這樣 Vue 絕對會觸發畫面更新！
-						selectedSpot.value.imageUrl = e.target.result;
-					};
-					reader.readAsDataURL(file);
-				}
-				event.target.value = ''; // 清空 input
-			};
-            // ▲▲▲ 新增這一段 ▲▲▲
 			
-            const currentTab = ref('itinerary'); 
-            const tabs = ['info', 'itinerary', 'shopping', 'packing', 'expenses'];
-            
             let touchStartX = 0;
             let touchStartY = 0;
 
