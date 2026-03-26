@@ -1581,6 +1581,7 @@
             let isSyncingFromCloud = false;
 
             // 2. 網頁載入時，監聽雲端資料變化 (只要有一方修改，這裡就會瞬間觸發)
+            // 2. 網頁載入時，監聽雲端資料變化
             onMounted(() => {
                 tripRef.on('value', (snapshot) => {
                     const data = snapshot.val();
@@ -1589,8 +1590,20 @@
                         isSyncingFromCloud = true;
                         
                         if (data.itinerary) itinerary.value = data.itinerary;
-                        if (data.shopping) shoppingList.value = data.shopping;
-                        if (data.packing) packingList.value = data.packing;
+                        
+                        // ▼▼▼ 修復 Firebase 吃掉空陣列的黑洞 ▼▼▼
+                        if (data.shopping) {
+                            // 檢查每個商店，如果 items 被 Firebase 沒收了，就強制塞一個空陣列給它
+                            data.shopping.forEach(shop => { if (!shop.items) shop.items = []; });
+                            shoppingList.value = data.shopping;
+                        }
+                        if (data.packing) {
+                            // 行李清單也一樣，補回空陣列
+                            data.packing.forEach(cat => { if (!cat.items) cat.items = []; });
+                            packingList.value = data.packing;
+                        }
+                        // ▲▲▲ 修復結束 ▲▲▲
+
                         if (data.expenses) expenseList.value = data.expenses;
                         if (data.todos) todoList.value = data.todos;
                         
