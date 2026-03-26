@@ -163,32 +163,47 @@
                     
                     <div v-if="infoSubTab === 'tickets'" class="bg-white rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden animate-fade-in">
                         
-                        <div class="px-4 pt-3 pb-1 flex justify-end items-center bg-white">
-                            <label for="upload-ticket" class="text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg cursor-pointer transition active-scale shadow-sm">
-                                <i class="fas fa-plus mr-1"></i>新增票券
-                            </label>
-                            <input type="file" id="upload-ticket" accept="image/*" class="hidden" @change="uploadTicket">
+                        <div class="px-4 pt-3 pb-2 flex justify-end items-center bg-white border-b border-slate-50">
+                            <button @click="isAddTicketOpen = !isAddTicketOpen" class="text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition active-scale shadow-sm flex items-center">
+                                <i :class="isAddTicketOpen ? 'fas fa-times' : 'fas fa-link'" class="mr-1"></i>
+                                {{ isAddTicketOpen ? '取消' : '貼上票券連結' }}
+                            </button>
                         </div>
                         
-                        <div class="p-4 pt-2">
+                        <div v-show="isAddTicketOpen" class="p-4 bg-indigo-50/50 border-b border-slate-100 animate-fade-in">
+                            <input v-model="newTicketName" type="text" placeholder="票券名稱 (如：環球影城門票)" class="w-full mb-2 p-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-400 text-slate-700 bg-white">
+                            <div class="flex gap-2">
+                                <input v-model="newTicketUrl" type="text" placeholder="貼上 Google Drive / Klook 連結" class="w-full p-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-400 text-slate-700 bg-white">
+                                <button @click="addTicketLink" class="bg-indigo-600 text-white px-4 rounded-lg text-sm font-bold hover:bg-indigo-700 transition flex-shrink-0 active-scale">
+                                    儲存
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 pt-3">
                             <div v-if="ticketList && ticketList.length > 0" class="grid grid-cols-2 gap-3">
                                 <div v-for="(ticket, index) in ticketList" :key="ticket.id" class="relative group rounded-xl border border-slate-200 overflow-hidden bg-slate-50">
-                                    <div class="h-24 w-full relative">
-                                        <img :src="ticket.image" @click="openLightbox(ticket.image)" class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition" alt="票券">
-                                        <button @click="deleteTicket(index)" class="absolute top-1.5 right-1.5 w-7 h-7 bg-white/80 backdrop-blur text-slate-500 rounded-full flex items-center justify-center hover:text-red-500 shadow-sm active-scale">
-                                            <i class="fas fa-trash-alt text-[10px]"></i>
-                                        </button>
-                                    </div>
+                                    
+                                    <a :href="ticket.url" target="_blank" class="h-20 w-full relative flex flex-col items-center justify-center bg-slate-100 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer">
+                                        <i class="fas fa-external-link-alt text-2xl mb-1.5"></i>
+                                        <span class="text-[10px] font-bold tracking-wider">點擊開啟票券</span>
+                                    </a>
+                                    
+                                    <button @click.stop="deleteTicket(index)" class="absolute top-1.5 right-1.5 w-6 h-6 bg-white/90 backdrop-blur text-slate-400 rounded-full flex items-center justify-center hover:text-red-500 shadow-sm active-scale">
+                                        <i class="fas fa-trash-alt text-[10px]"></i>
+                                    </button>
+                                    
                                     <div class="py-2 px-2.5 bg-white border-t border-slate-100">
                                         <p class="text-xs font-bold text-slate-700 truncate text-center">{{ ticket.name }}</p>
                                     </div>
                                 </div>
                             </div>
+                            
                             <div v-else class="flex flex-col items-center justify-center py-6 text-center">
                                 <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-2">
-                                    <i class="fas fa-box-open text-xl text-slate-300"></i>
+                                    <i class="fas fa-cloud-upload-alt text-xl text-slate-300"></i>
                                 </div>
-                                <p class="text-sm text-slate-400">目前沒有票券<br>請將 QR Code 截圖後上傳</p>
+                                <p class="text-sm text-slate-400">目前沒有票券<br>請將雲端硬碟連結貼上</p>
                             </div>
                         </div>
                     </div>
@@ -770,8 +785,41 @@
                 { name: '預約機場接送', checked: false }
             ]);
 			
-			// --- 數位票券夾邏輯 ---
+			// --- 數位票券夾邏輯 (雲端連結版) ---
             const ticketList = ref([]);
+            const isAddTicketOpen = ref(false);
+            const newTicketName = ref('');
+            const newTicketUrl = ref('');
+            
+            const addTicketLink = () => {
+                if (!newTicketName.value || !newTicketUrl.value) {
+                    alert('請填寫票券名稱與網址喔！');
+                    return;
+                }
+                
+                // 貼心防呆：如果網址忘記複製到 http，自動幫忙補上
+                let finalUrl = newTicketUrl.value;
+                if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+                    finalUrl = 'https://' + finalUrl;
+                }
+
+                ticketList.value.push({
+                    id: Date.now(),
+                    name: newTicketName.value,
+                    url: finalUrl
+                });
+
+                // 存檔後清空輸入框並收起
+                newTicketName.value = '';
+                newTicketUrl.value = '';
+                isAddTicketOpen.value = false;
+            };
+
+            const deleteTicket = (index) => {
+                if(confirm('確定要刪除這張票券連結嗎？')) {
+                    ticketList.value.splice(index, 1);
+                }
+            };
             
             const uploadTicket = (event) => {
                 const file = event.target.files[0];
@@ -794,12 +842,6 @@
                     reader.readAsDataURL(file);
                 }
                 event.target.value = '';
-            };
-
-            const deleteTicket = (index) => {
-                if(confirm('確定要刪除這張票券嗎？')) {
-                    ticketList.value.splice(index, 1);
-                }
             };
 
             const addTodo = () => {
@@ -1707,7 +1749,7 @@
                 handleTouchStart, handleTouchEnd,
                 isTodoOpen,todoList, newTodoInput, addTodo, deleteTodo,
 				selectedSpot, openSpotDetail, closeSpotDetail, uploadSpotImage,
-				ticketList, uploadTicket, deleteTicket,currentTab, infoSubTab,
+				ticketList, isAddTicketOpen, newTicketName, newTicketUrl, addTicketLink, deleteTicket, uploadTicket, currentTab, infoSubTab,
             };
         }
     }).mount('#app');
