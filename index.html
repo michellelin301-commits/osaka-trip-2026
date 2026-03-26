@@ -705,71 +705,6 @@
             const currentTab = ref('itinerary'); 
             const tabs = ['info', 'itinerary', 'shopping', 'packing', 'expenses'];
             
-			// ==========================================
-            // Firebase 雲端即時同步 (Realtime Database)
-            // ==========================================
-            
-            // 1. 填入你剛剛在第一步複製的 firebaseConfig
-            const firebaseConfig = {
-                  apiKey: "AIzaSyAiaMwRKgoHjMQZYKYooI0XwyiSDXAOS6o",
-				  authDomain: "osaka-trip-2026-e0ca5.firebaseapp.com",
-				  databaseURL: "https://osaka-trip-2026-e0ca5-default-rtdb.asia-southeast1.firebasedatabase.app",
-				  projectId: "osaka-trip-2026-e0ca5",
-				  storageBucket: "osaka-trip-2026-e0ca5.firebasestorage.app",
-				  messagingSenderId: "572950572670",
-				  appId: "1:572950572670:web:f28ff24621cef5ece9b22f"
-            };
-            
-            // 初始化 Firebase
-            firebase.initializeApp(firebaseConfig);
-            const db = firebase.database();
-            
-            // 建立一個專屬的資料庫節點 (例如：2026大阪行)
-            const tripRef = db.ref('osaka_trip_202604');
-            
-            // 防止迴圈更新的開關
-            let isSyncingFromCloud = false;
-
-            // 2. 網頁載入時，監聽雲端資料變化 (只要有一方修改，這裡就會瞬間觸發)
-            onMounted(() => {
-                tripRef.on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        // 標記目前正在接收雲端資料，避免本地 watch 誤以為是自己改的又推回去
-                        isSyncingFromCloud = true;
-                        
-                        if (data.itinerary) itinerary.value = data.itinerary;
-                        if (data.shopping) shoppingList.value = data.shopping;
-                        if (data.packing) packingList.value = data.packing;
-                        if (data.expenses) expenseList.value = data.expenses;
-                        if (data.todos) todoList.value = data.todos;
-                        
-                        // 資料更新完畢，0.1秒後解除鎖定
-                        setTimeout(() => { isSyncingFromCloud = false; }, 100);
-                    }
-                });
-            });
-
-            // 3. 深度監聽本地資料，只要你在畫面上打勾或新增，就自動推送到雲端
-            watch(itinerary, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('itinerary').set(newVal);
-            }, { deep: true });
-
-            watch(shoppingList, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('shopping').set(newVal);
-            }, { deep: true });
-
-            watch(packingList, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('packing').set(newVal);
-            }, { deep: true });
-
-            watch(expenseList, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('expenses').set(newVal);
-            }, { deep: true });
-
-            watch(todoList, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('todos').set(newVal);
-            }, { deep: true });
 			
             let touchStartX = 0;
             let touchStartY = 0;
@@ -1619,6 +1554,72 @@
                 ]
             }
             ]);
+			
+			// ==========================================
+            // Firebase 雲端即時同步 (Realtime Database)
+            // ==========================================
+            
+            // 1. 填入你剛剛在第一步複製的 firebaseConfig
+            const firebaseConfig = {
+                  apiKey: "AIzaSyAiaMwRKgoHjMQZYKYooI0XwyiSDXAOS6o",
+				  authDomain: "osaka-trip-2026-e0ca5.firebaseapp.com",
+				  databaseURL: "https://osaka-trip-2026-e0ca5-default-rtdb.asia-southeast1.firebasedatabase.app",
+				  projectId: "osaka-trip-2026-e0ca5",
+				  storageBucket: "osaka-trip-2026-e0ca5.firebasestorage.app",
+				  messagingSenderId: "572950572670",
+				  appId: "1:572950572670:web:f28ff24621cef5ece9b22f"
+            };
+            
+            // 初始化 Firebase
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
+            
+            // 建立一個專屬的資料庫節點 (例如：2026大阪行)
+            const tripRef = db.ref('osaka_trip_202604');
+            
+            // 防止迴圈更新的開關
+            let isSyncingFromCloud = false;
+
+            // 2. 網頁載入時，監聽雲端資料變化 (只要有一方修改，這裡就會瞬間觸發)
+            onMounted(() => {
+                tripRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        // 標記目前正在接收雲端資料，避免本地 watch 誤以為是自己改的又推回去
+                        isSyncingFromCloud = true;
+                        
+                        if (data.itinerary) itinerary.value = data.itinerary;
+                        if (data.shopping) shoppingList.value = data.shopping;
+                        if (data.packing) packingList.value = data.packing;
+                        if (data.expenses) expenseList.value = data.expenses;
+                        if (data.todos) todoList.value = data.todos;
+                        
+                        // 資料更新完畢，0.1秒後解除鎖定
+                        setTimeout(() => { isSyncingFromCloud = false; }, 100);
+                    }
+                });
+            });
+
+            // 3. 深度監聽本地資料，只要你在畫面上打勾或新增，就自動推送到雲端
+            watch(itinerary, (newVal) => {
+                if (!isSyncingFromCloud) tripRef.child('itinerary').set(newVal);
+            }, { deep: true });
+
+            watch(shoppingList, (newVal) => {
+                if (!isSyncingFromCloud) tripRef.child('shopping').set(newVal);
+            }, { deep: true });
+
+            watch(packingList, (newVal) => {
+                if (!isSyncingFromCloud) tripRef.child('packing').set(newVal);
+            }, { deep: true });
+
+            watch(expenseList, (newVal) => {
+                if (!isSyncingFromCloud) tripRef.child('expenses').set(newVal);
+            }, { deep: true });
+
+            watch(todoList, (newVal) => {
+                if (!isSyncingFromCloud) tripRef.child('todos').set(newVal);
+            }, { deep: true });
 
             return {
                 currentTab, calcJpy, exchangeRate, itinerary, currentDayIndex, weatherForecast, isWeatherOpen,
