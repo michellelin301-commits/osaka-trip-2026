@@ -98,11 +98,8 @@
 				</div>
 			</div>
 			
-			<main v-show="isLoggedIn" class="flex-grow overflow-y-auto overflow-x-hidden px-4 space-y-5 pb-8 relative" :class="currentTab === 'itinerary' ? 'pt-0' : 'pt-5'" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
-			</main>
 		
-		<nav v-show="!isInitializing && isLoggedIn" class="...">
-        </nav>
+
 		<div v-if="!isLoggedIn" class="absolute inset-0 z-[100] bg-[#F7F6F3] flex flex-col items-center justify-center px-6 animate-fade-in">
             <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 w-full max-w-sm text-center">
                 <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-4">
