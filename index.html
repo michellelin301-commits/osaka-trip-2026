@@ -82,8 +82,25 @@
 <div class="w-full sm:w-[393px] h-[100dvh] sm:h-[852px] sm:rounded-[40px] sm:border-[8px] border-stone-300 shadow-2xl overflow-hidden relative bg-[#F7F6F3]">
     
     <div id="app" class="w-full h-full overflow-hidden flex flex-col relative" v-cloak>
-
-        <main 
+		<div v-if="!isLoggedIn" class="absolute inset-0 z-[100] bg-[#F7F6F3] flex flex-col items-center justify-center px-6 animate-fade-in">
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 w-full max-w-sm text-center">
+                <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-lock text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">專屬旅遊手冊</h2>
+                <p class="text-sm text-slate-500 mb-6">請輸入通關密語解鎖行程</p>
+                
+                <input v-model="passwordInput" @keyup.enter="login" type="password" placeholder="通關密語..." class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl mb-4 focus:outline-none focus:border-sky-500 text-center tracking-widest text-lg">
+                
+                <p v-if="loginError" class="text-red-500 text-sm font-bold mb-4 animate-fade-in">{{ loginError }}</p>
+                
+                <button @click="login" class="w-full bg-sky-600 text-white font-bold py-3.5 rounded-xl hover:bg-sky-700 transition active-scale shadow-md">
+                    解鎖進入 <i class="fas fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+        <main
+			v-show="isLoggedIn"
             class="flex-grow overflow-y-auto overflow-x-hidden px-4 space-y-5 pb-8 relative"
             :class="currentTab === 'itinerary' ? 'pt-0' : 'pt-5'"
             @touchstart="handleTouchStart"
@@ -303,7 +320,7 @@
                                     <i :class="spot.icon" class="text-sky-600 text-xs"></i>
                                 </div>
                                 
-                                <div @click="openSpotDetail(spot)" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm active-scale transition duration-200 cursor-pointer hover:border-sky-300">
+                                <div @click="openSpotDetail(currentDayIndex, sIndex)" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm active-scale transition duration-200 cursor-pointer hover:border-sky-300">
                                     <div class="flex justify-between items-start mb-2">
                                         <div class="flex items-center">
                                             <span class="text-sky-700 font-semibold text-sm mr-2.5 bg-sky-50 px-2 py-0.5 rounded">{{ spot.time }}</span>
@@ -678,7 +695,7 @@
             </div>
         </div>
 
-        <nav class="bg-slate-50/95 backdrop-blur-md border-t border-slate-200 flex justify-around items-center h-[85px] z-50 flex-shrink-0 pb-6 pt-2">
+        <nav v-show="isLoggedIn" class="bg-slate-50/95 backdrop-blur-md border-t border-slate-200 flex justify-around items-center h-[85px] z-50 flex-shrink-0 pb-6 pt-2">
             <button @click="currentTab = 'info'" :class="currentTab === 'info' ? 'text-sky-600 font-bold' : 'text-slate-400 hover:text-sky-600'" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors active-scale">
                 <i class="fas fa-info-circle text-xl mb-0.5"></i>
                 <span class="text-[11px] font-medium tracking-wider">首頁</span>
@@ -716,9 +733,94 @@
 
     createApp({
         setup() {
-			const selectedSpot = ref(null);
-            const openSpotDetail = (spot) => { selectedSpot.value = spot; };
-            const closeSpotDetail = () => { selectedSpot.value = null; };
+			
+			// ==========================================
+            // --- 登入與權限管理 (高資安無寫死密碼版) ---
+            // ==========================================
+            const isLoggedIn = ref(false);
+            const passwordInput = ref('');
+            const loginError = ref('');
+            let tripRef = null; 
+            
+            // 把原本的資料載入邏輯，統一包裝成獨立函數
+            const startDataSync = () => {
+                if (!tripRef) return; // 🛡️ 安全鎖：確保有鑰匙才去要資料
+
+                tripRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        // 標記目前正在接收雲端資料
+                        isSyncingFromCloud = true;
+                        
+                        if (data.itinerary) itinerary.value = data.itinerary;
+                        
+                        if (data.shopping) {
+                            data.shopping.forEach(shop => { if (!shop.items) shop.items = []; });
+                            shoppingList.value = data.shopping;
+                        }
+                        if (data.packing) {
+                            data.packing.forEach(cat => { if (!cat.items) cat.items = []; });
+                            packingList.value = data.packing;
+                        }
+                        if (data.tickets) {
+                            ticketList.value = data.tickets;
+                        } else {
+                            ticketList.value = []; 
+                        }
+
+                        if (data.expenses) expenseList.value = data.expenses;
+                        if (data.todos) todoList.value = data.todos;
+                        
+                        // 資料更新完畢，0.1秒後解除鎖定
+                        setTimeout(() => { isSyncingFromCloud = false; }, 100);
+                    }
+                });
+            };
+
+            const login = () => {
+                const key = passwordInput.value;
+                if (!key) return;
+
+                // 嘗試用輸入的密碼去開 Firebase 的門
+                const testRef = db.ref('osaka_trip_' + key);
+                
+                testRef.once('value')
+                    .then(() => {
+                        // 成功！Firebase 規則放行了
+                        isLoggedIn.value = true;
+                        loginError.value = '';
+                        localStorage.setItem('osaka_trip_vip_pass', key); // 記憶密碼
+                        tripRef = testRef;
+                        startDataSync(); // 開始同步資料
+                    })
+                    .catch((error) => {
+                        // 失敗！被 Firebase 雲端保全擋在門外
+                        console.error("驗證失敗:", error);
+                        loginError.value = '通關密語錯誤';
+                        passwordInput.value = '';
+                    });
+            };
+			
+			const selectedDayIndex = ref(null);
+			const selectedSpotIndex = ref(null);
+
+			// 改用 computed 永遠追蹤最新陣列裡的那筆資料
+			const selectedSpot = computed(() => {
+				if (selectedDayIndex.value !== null && selectedSpotIndex.value !== null && itinerary.value[selectedDayIndex.value]) {
+					return itinerary.value[selectedDayIndex.value].spots[selectedSpotIndex.value];
+				}
+				return null;
+			});
+
+			const openSpotDetail = (dIndex, sIndex) => { 
+				selectedDayIndex.value = dIndex;
+				selectedSpotIndex.value = sIndex;
+			};
+
+			const closeSpotDetail = () => { 
+				selectedDayIndex.value = null;
+				selectedSpotIndex.value = null;
+			};
 
             // return { ... 原本的匯出內容 ... }
 
@@ -1677,74 +1779,51 @@
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
             
-            // 建立一個專屬的資料庫節點 (例如：2026大阪行)
-            const tripRef = db.ref('osaka_trip_202604');
-            
             // 防止迴圈更新的開關
             let isSyncingFromCloud = false;
 
             // 2. 網頁載入時，監聽雲端資料變化 (只要有一方修改，這裡就會瞬間觸發)
-            // 2. 網頁載入時，監聽雲端資料變化
-            onMounted(() => {
-                tripRef.on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        // 標記目前正在接收雲端資料，避免本地 watch 誤以為是自己改的又推回去
-                        isSyncingFromCloud = true;
-                        
-                        if (data.itinerary) itinerary.value = data.itinerary;
-                        
-                        // ▼▼▼ 修復 Firebase 吃掉空陣列的黑洞 ▼▼▼
-                        if (data.shopping) {
-                            // 檢查每個商店，如果 items 被 Firebase 沒收了，就強制塞一個空陣列給它
-                            data.shopping.forEach(shop => { if (!shop.items) shop.items = []; });
-                            shoppingList.value = data.shopping;
-                        }
-                        if (data.packing) {
-                            // 行李清單也一樣，補回空陣列
-                            data.packing.forEach(cat => { if (!cat.items) cat.items = []; });
-                            packingList.value = data.packing;
-                        }
-						
-						if (data.tickets) {
-							ticketList.value = data.tickets;
-						} else {
-							ticketList.value = []; // 防止 Firebase 刪光時產生幽靈資料
-						}
-                        // ▲▲▲ 修復結束 ▲▲▲
 
-                        if (data.expenses) expenseList.value = data.expenses;
-                        if (data.todos) todoList.value = data.todos;
-                        
-                        // 資料更新完畢，0.1秒後解除鎖定
-                        setTimeout(() => { isSyncingFromCloud = false; }, 100);
-                    }
-                });
+            // 網頁載入時，只負責檢查有沒有記憶的密碼，不要直接去抓資料！
+            onMounted(() => {
+                const savedKey = localStorage.getItem('osaka_trip_vip_pass');
+                if (savedKey) {
+                    db.ref('osaka_trip_' + savedKey).once('value')
+                        .then(() => {
+                            isLoggedIn.value = true;
+                            tripRef = db.ref('osaka_trip_' + savedKey);
+                            startDataSync();
+                        })
+                        .catch(() => {
+                            // 通行證失效或密碼換了，清除記憶
+                            localStorage.removeItem('osaka_trip_vip_pass');
+                        });
+                }
             });
 
             // 3. 深度監聽本地資料，只要你在畫面上打勾或新增，就自動推送到雲端
             watch(itinerary, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('itinerary').set(newVal);
+                if (!isSyncingFromCloud && tripRef) tripRef.child('itinerary').set(newVal);
             }, { deep: true });
 
             watch(shoppingList, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('shopping').set(newVal);
+                if (!isSyncingFromCloud && tripRef) tripRef.child('shopping').set(newVal);
             }, { deep: true });
 
             watch(packingList, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('packing').set(newVal);
+                if (!isSyncingFromCloud && tripRef) tripRef.child('packing').set(newVal);
             }, { deep: true });
 
             watch(expenseList, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('expenses').set(newVal);
+                if (!isSyncingFromCloud && tripRef) tripRef.child('expenses').set(newVal);
             }, { deep: true });
 
             watch(todoList, (newVal) => {
-                if (!isSyncingFromCloud) tripRef.child('todos').set(newVal);
+                if (!isSyncingFromCloud && tripRef) tripRef.child('todos').set(newVal);
             }, { deep: true });
 			
 			watch(ticketList, (newVal) => {
-				if (!isSyncingFromCloud) tripRef.child('tickets').set(newVal);
+				if (!isSyncingFromCloud && tripRef) tripRef.child('tickets').set(newVal);
 			}, { deep: true });
 
             return {
@@ -1758,6 +1837,7 @@
                 isTodoOpen,todoList, newTodoInput, addTodo, deleteTodo,
 				selectedSpot, openSpotDetail, closeSpotDetail, uploadSpotImage,
 				ticketList, isAddTicketOpen, newTicketName, newTicketUrl, addTicketLink, deleteTicket, uploadTicket, currentTab, infoSubTab,
+				isLoggedIn, passwordInput, loginError, login,
             };
         }
     }).mount('#app');
