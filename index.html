@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 	<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -82,18 +83,22 @@
 	<div class="w-full sm:w-[393px] h-[100dvh] sm:h-[852px] sm:rounded-[40px] sm:border-[8px] border-stone-300 shadow-2xl overflow-hidden relative bg-[#F7F6F3]">
 		
 		<div id="app" class="w-full h-full overflow-hidden flex flex-col relative" v-cloak>
-
-		<div v-if="isInitializing" class="absolute inset-0 z-[200] bg-[#F7F6F3] flex flex-col items-center justify-center">
-			<div class="w-12 h-12 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin mb-4"></div>
-			<p class="text-slate-500 font-medium tracking-widest text-sm animate-pulse">準備旅程中...</p>
-		</div>
-
-		<div v-if="!isInitializing && !isLoggedIn" class="absolute inset-0 z-[100] bg-[#F7F6F3] flex flex-col items-center justify-center px-6 animate-fade-in">
-			<div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 w-full max-w-sm text-center">
+			<div v-if="!isLoggedIn" class="absolute inset-0 z-[100] bg-[#F7F6F3] flex flex-col items-center justify-center px-6 animate-fade-in">
+				<div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 w-full max-w-sm text-center">
+					<div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-4">
+						<i class="fas fa-lock text-2xl"></i>
+					</div>
+					<h2 class="text-2xl font-bold text-slate-800 mb-2">專屬旅遊手冊</h2>
+					<p class="text-sm text-slate-500 mb-6">請輸入通關密語解鎖行程</p>
+					<input v-model="passwordInput" @keyup.enter="login" type="password" placeholder="通關密語..." class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl mb-4 focus:outline-none focus:border-sky-500 text-center tracking-widest text-lg">
+					<p v-if="loginError" class="text-red-500 text-sm font-bold mb-4 animate-fade-in">{{ loginError }}</p>
+					<button @click="login" class="w-full bg-sky-600 text-white font-bold py-3.5 rounded-xl hover:bg-sky-700 transition active-scale shadow-md">
+						解鎖進入 <i class="fas fa-arrow-right ml-1"></i>
+					</button>
 				</div>
-		</div>
-		
-		<main v-show="!isInitializing && isLoggedIn" class="flex-grow overflow-y-auto overflow-x-hidden px-4 space-y-5 pb-8 relative" ...>
+			</div>
+			
+			<main v-show="isLoggedIn" class="flex-grow overflow-y-auto overflow-x-hidden px-4 space-y-5 pb-8 relative" :class="currentTab === 'itinerary' ? 'pt-0' : 'pt-5'" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
 			</main>
 		
 		<nav v-show="!isInitializing && isLoggedIn" class="...">
@@ -1793,6 +1798,7 @@
             // 初始化 Firebase
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
+			const storage = firebase.storage();
             
             // 防止迴圈更新的開關
             let isSyncingFromCloud = false;
@@ -1822,32 +1828,8 @@
 						});
 				}
 			});
-			// 4. 手動輸入密碼的登入按鈕邏輯
-			const login = () => {
-				const key = passwordInput.value;
-				if (!key) return;
 
-				const testRef = db.ref('osaka_trip_' + key);
-				
-				testRef.once('value')
-					.then((snapshot) => {
-						if (snapshot.exists()) {
-							isLoggedIn.value = true;
-							loginError.value = '';
-							localStorage.setItem('osaka_trip_vip_pass', key); 
-							tripRef = testRef;
-							startDataSync(); 
-						} else {
-							loginError.value = '通關密語錯誤或查無行程';
-							passwordInput.value = '';
-						}
-					})
-					.catch((error) => {
-						console.error("驗證失敗:", error);
-						loginError.value = '通關密語錯誤';
-						passwordInput.value = '';
-					});
-			};
+
             // 3. 深度監聽本地資料，只要你在畫面上打勾或新增，就自動推送到雲端
             watch(itinerary, (newVal) => {
                 if (!isSyncingFromCloud && tripRef) tripRef.child('itinerary').set(newVal);
@@ -1874,7 +1856,7 @@
 			}, { deep: true });
 
             return {
-                currentTab, calcJpy, exchangeRate, itinerary, currentDayIndex, weatherForecast, isWeatherOpen,
+                calcJpy, exchangeRate, itinerary, currentDayIndex, weatherForecast, isWeatherOpen,
                 shoppingList, isAddShopOpen, newShopNameInput, addShop, deleteShop, addItemToShop, deleteItem, uploadImage,
                 lightboxImage, openLightbox, closeLightbox,
                 packingList, isAddPackingCatOpen, newPackingCatInput, addPackingCategory, addItemToCategory, deletePackingItem,
@@ -1885,7 +1867,7 @@
 				selectedSpot, openSpotDetail, closeSpotDetail, uploadSpotImage,
 				ticketList, isAddTicketOpen, newTicketName, newTicketUrl, addTicketLink, deleteTicket, 
 				currentTab, infoSubTab,
-				isInitializing, isLoggedIn, passwordInput, loginError, login,
+				isLoggedIn, passwordInput, loginError, login,
             };
         }
     }).mount('#app');
