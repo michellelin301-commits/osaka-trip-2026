@@ -768,7 +768,14 @@
                             ticketList.value = []; 
                         }
 
-                        if (data.expenses) expenseList.value = data.expenses;
+                        if (data.expenses) {
+							expenseList.value = data.expenses;
+							data.expenses.forEach(exp => {
+								if (expenseDayStates.value[exp.date] === undefined) {
+									expenseDayStates.value[exp.date] = true; // 預設展開
+								}
+							});
+						}
                         if (data.todos) todoList.value = data.todos;
                         
                         // 資料更新完畢，0.1秒後解除鎖定
@@ -778,28 +785,33 @@
             };
 
             const login = () => {
-                const key = passwordInput.value;
-                if (!key) return;
+			const key = passwordInput.value;
+			if (!key) return;
 
-                // 嘗試用輸入的密碼去開 Firebase 的門
-                const testRef = db.ref('osaka_trip_' + key);
-                
-                testRef.once('value')
-                    .then(() => {
-                        // 成功！Firebase 規則放行了
-                        isLoggedIn.value = true;
-                        loginError.value = '';
-                        localStorage.setItem('osaka_trip_vip_pass', key); // 記憶密碼
-                        tripRef = testRef;
-                        startDataSync(); // 開始同步資料
-                    })
-                    .catch((error) => {
-                        // 失敗！被 Firebase 雲端保全擋在門外
-                        console.error("驗證失敗:", error);
-                        loginError.value = '通關密語錯誤';
-                        passwordInput.value = '';
-                    });
-            };
+			const testRef = db.ref('osaka_trip_' + key);
+			
+			testRef.once('value')
+				.then((snapshot) => {
+					// ✅ 加上 .exists() 判斷節點是否真的存在
+					if (snapshot.exists()) { 
+						isLoggedIn.value = true;
+						loginError.value = '';
+						localStorage.setItem('osaka_trip_vip_pass', key);
+						tripRef = testRef;
+						startDataSync();
+					} else {
+						// 節點不存在（密碼錯誤）
+						console.warn("查無此行程資料");
+						loginError.value = '通關密語錯誤或查無行程';
+						passwordInput.value = '';
+					}
+				})
+				.catch((error) => {
+					console.error("驗證失敗:", error);
+					loginError.value = '連線失敗或權限不足';
+					passwordInput.value = '';
+				});
+		};
 			
 			const selectedDayIndex = ref(null);
 			const selectedSpotIndex = ref(null);
@@ -825,17 +837,33 @@
             // return { ... 原本的匯出內容 ... }
 
             // ▼▼▼ 新增這一段：處理景點照片上傳 ▼▼▼
-            const uploadSpotImage = (event) => {
+            // 假設你有初始化 const storage = firebase.storage();
+
+			const uploadSpotImage = async (event) => {
 				const file = event.target.files[0];
-				if (file) {
-					const reader = new FileReader();
-					reader.onload = (e) => {
-						// 直接覆蓋原本的 imageUrl，這樣 Vue 絕對會觸發畫面更新！
-						selectedSpot.value.imageUrl = e.target.result;
-					};
-					reader.readAsDataURL(file);
+				if (!file) return;
+
+				// 1. 可以先在畫面顯示 Loading 狀態 (選做)
+				
+				try {
+					// 2. 建立 Storage 參照 (使用時間戳記避免檔名重複)
+					const storageRef = storage.ref(`trip_images/${Date.now()}_${file.name}`);
+					
+					// 3. 上傳檔案到 Storage
+					const snapshot = await storageRef.put(file);
+					
+					// 4. 取得圖片的公開下載網址
+					const downloadURL = await snapshot.ref.getDownloadURL();
+					
+					// 5. 將網址存入你的 Vue 響應式資料中 (這會觸發 watch 自動同步到 Realtime DB)
+					selectedSpot.value.imageUrl = downloadURL;
+					
+				} catch (error) {
+					console.error("圖片上傳失敗:", error);
+					alert("圖片上傳失敗，請檢查網路連線");
+				} finally {
+					event.target.value = ''; // 清空 input
 				}
-				event.target.value = ''; // 清空 input
 			};
             // ▲▲▲ 新增這一段 ▲▲▲
 			
@@ -929,29 +957,7 @@
                     ticketList.value.splice(index, 1);
                 }
             };
-            
-            const uploadTicket = (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    // 上傳前先詢問這張票叫什麼名字
-                    const ticketName = prompt('請輸入票券名稱 (例如：環球影城門票、HARUKA車票)：');
-                    if (!ticketName) {
-                        event.target.value = ''; // 如果按取消，就清空輸入
-                        return;
-                    }
-                    
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        ticketList.value.push({
-                            id: Date.now(),
-                            name: ticketName,
-                            image: e.target.result
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                }
-                event.target.value = '';
-            };
+         
 
             const addTodo = () => {
                 if (!newTodoInput.value) return;
@@ -986,19 +992,16 @@
             const totalExpenses = computed(() => expenseList.value.reduce((sum, item) => sum + item.finalTwd, 0));
 
             const groupedExpenses = computed(() => {
-                const sorted = [...expenseList.value].sort((a, b) => new Date(b.date) - new Date(a.date));
-                const groups = {};
-                sorted.forEach(item => {
-                    if (!groups[item.date]) {
-                        groups[item.date] = [];
-                        if (expenseDayStates.value[item.date] === undefined) {
-                            expenseDayStates.value[item.date] = true;
-                        }
-                    }
-                    groups[item.date].push(item);
-                });
-                return groups;
-            });
+				const sorted = [...expenseList.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+				const groups = {};
+				sorted.forEach(item => {
+					if (!groups[item.date]) {
+						groups[item.date] = [];
+					}
+					groups[item.date].push(item);
+				});
+				return groups;
+			});
 
             const addShop = () => {
                 if (!newShopNameInput.value) return;
@@ -1064,6 +1067,10 @@
                     amount, 
                     finalTwd 
                 });
+				
+				if (expenseDayStates.value[newExpense.value.date] === undefined) {
+					expenseDayStates.value[newExpense.value.date] = true;
+				}
                 
                 expenseDayStates.value[newExpense.value.date] = true;
                 newExpense.value.item = ''; 
@@ -1836,7 +1843,8 @@
                 handleTouchStart, handleTouchEnd,
                 isTodoOpen,todoList, newTodoInput, addTodo, deleteTodo,
 				selectedSpot, openSpotDetail, closeSpotDetail, uploadSpotImage,
-				ticketList, isAddTicketOpen, newTicketName, newTicketUrl, addTicketLink, deleteTicket, uploadTicket, currentTab, infoSubTab,
+				ticketList, isAddTicketOpen, newTicketName, newTicketUrl, addTicketLink, deleteTicket, 
+				currentTab, infoSubTab,
 				isLoggedIn, passwordInput, loginError, login,
             };
         }
