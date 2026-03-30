@@ -764,7 +764,6 @@
 			let tripRef = null; 
 			let isSyncingFromCloud = false;
 
-			// (startDataSync 函數維持你原本的樣子，不用動)
 			const startDataSync = () => {
 				if (!tripRef) return;
 				tripRef.on('value', (snapshot) => {
