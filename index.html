@@ -748,59 +748,50 @@
     const { createApp, ref, computed, watch, onMounted } = Vue;
 
     createApp({
-        setup() {
-			
+			setup() {
 			// ==========================================
-            // --- 登入與權限管理 (高資安無寫死密碼版) ---
-            // ==========================================
-            const isInitializing = ref(true); 
-			const isLoggedIn = ref(false);
-			const isLoggedIn = ref(false);
-            const passwordInput = ref('');
-            const loginError = ref('');
-            let tripRef = null; 
-            
-            // 把原本的資料載入邏輯，統一包裝成獨立函數
-            const startDataSync = () => {
-                if (!tripRef) return; // 🛡️ 安全鎖：確保有鑰匙才去要資料
+			// --- 登入與權限管理 (無閃爍秒進版) ---
+			// ==========================================
+			
+			// 1. 🌟 網頁一載入，第一時間先去抓記憶裡的密碼
+			const savedKey = localStorage.getItem('osaka_trip_vip_pass');
+			
+			// 2. 🌟 終極殺招：如果有存密碼，預設狀態就是 true！登入畫面直接灰飛煙滅。
+			const isLoggedIn = ref(!!savedKey); 
+			
+			const passwordInput = ref('');
+			const loginError = ref('');
+			let tripRef = null; 
+			let isSyncingFromCloud = false;
 
-                tripRef.on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        // 標記目前正在接收雲端資料
-                        isSyncingFromCloud = true;
-                        
-                        if (data.itinerary) itinerary.value = data.itinerary;
-                        
-                        if (data.shopping) {
-                            data.shopping.forEach(shop => { if (!shop.items) shop.items = []; });
-                            shoppingList.value = data.shopping;
-                        }
-                        if (data.packing) {
-                            data.packing.forEach(cat => { if (!cat.items) cat.items = []; });
-                            packingList.value = data.packing;
-                        }
-                        if (data.tickets) {
-                            ticketList.value = data.tickets;
-                        } else {
-                            ticketList.value = []; 
-                        }
-
-                        if (data.expenses) {
-							expenseList.value = data.expenses;
-							data.expenses.forEach(exp => {
-								if (expenseDayStates.value[exp.date] === undefined) {
-									expenseDayStates.value[exp.date] = true; // 預設展開
-								}
-							});
+			// (startDataSync 函數維持你原本的樣子，不用動)
+			const startDataSync = () => {
+				if (!tripRef) return;
+				tripRef.on('value', (snapshot) => {
+					const data = snapshot.val();
+					if (data) {
+						isSyncingFromCloud = true;
+						if (data.itinerary) itinerary.value = data.itinerary;
+						if (data.shopping) {
+							data.shopping.forEach(shop => { if (!shop.items) shop.items = []; });
+							shoppingList.value = data.shopping;
 						}
-                        if (data.todos) todoList.value = data.todos;
-                        
-                        // 資料更新完畢，0.1秒後解除鎖定
-                        setTimeout(() => { isSyncingFromCloud = false; }, 100);
-                    }
-                });
-            };
+						if (data.packing) {
+							data.packing.forEach(cat => { if (!cat.items) cat.items = []; });
+							packingList.value = data.packing;
+						}
+						if (data.tickets) {
+							ticketList.value = data.tickets;
+						} else {
+							ticketList.value = []; 
+						}
+						if (data.expenses) expenseList.value = data.expenses;
+						if (data.todos) todoList.value = data.todos;
+						
+						setTimeout(() => { isSyncingFromCloud = false; }, 100);
+					}
+				});
+			};
 
             const login = () => {
 			const key = passwordInput.value;
@@ -1807,40 +1798,57 @@
             // 防止迴圈更新的開關
             let isSyncingFromCloud = false;
 
-            // 2. 網頁載入時，監聽雲端資料變化 (只要有一方修改，這裡就會瞬間觸發)
 
-            // 網頁載入時，只負責檢查有沒有記憶的密碼，不要直接去抓資料！
-            onMounted(() => {
-				const savedKey = localStorage.getItem('osaka_trip_vip_pass');
-				
+            // 3. 🌟 網頁掛載時的背景檢查
+			onMounted(() => {
 				if (savedKey) {
-					// 有存密碼：去跟 Firebase 驗證
-					db.ref('osaka_trip_' + savedKey).once('value')
+					// 因為畫面已經放行了，我們在背景默默跟 Firebase 確認密碼對不對
+					const testRef = db.ref('osaka_trip_' + savedKey);
+					testRef.once('value')
 						.then((snapshot) => {
 							if (snapshot.exists()) {
-								// 驗證成功：直接登入
-								isLoggedIn.value = true;
-								tripRef = db.ref('osaka_trip_' + savedKey);
+								// 密碼正確！無縫接軌開始同步資料
+								tripRef = testRef;
 								startDataSync();
 							} else {
-								// 密碼已失效或被改掉：清除記憶
+								// 抓到了！密碼早就被改掉或失效，立刻把畫面踢回登入頁
+								isLoggedIn.value = false;
 								localStorage.removeItem('osaka_trip_vip_pass');
 							}
 						})
 						.catch(() => {
-							// 連線錯誤：清除記憶
+							// 網路斷線或權限不符，踢回登入頁
+							isLoggedIn.value = false;
 							localStorage.removeItem('osaka_trip_vip_pass');
-						})
-						.finally(() => {
-							// ✅ 無論 Firebase 驗證成功或失敗，最後都把「載入中」關掉
-							isInitializing.value = false; 
 						});
-				} else {
-					// ✅ 完全沒有存密碼：直接關閉「載入中」，讓使用者看到登入框
-					isInitializing.value = false;
 				}
 			});
+			// 4. 手動輸入密碼的登入按鈕邏輯
+			const login = () => {
+				const key = passwordInput.value;
+				if (!key) return;
 
+				const testRef = db.ref('osaka_trip_' + key);
+				
+				testRef.once('value')
+					.then((snapshot) => {
+						if (snapshot.exists()) {
+							isLoggedIn.value = true;
+							loginError.value = '';
+							localStorage.setItem('osaka_trip_vip_pass', key); 
+							tripRef = testRef;
+							startDataSync(); 
+						} else {
+							loginError.value = '通關密語錯誤或查無行程';
+							passwordInput.value = '';
+						}
+					})
+					.catch((error) => {
+						console.error("驗證失敗:", error);
+						loginError.value = '通關密語錯誤';
+						passwordInput.value = '';
+					});
+			};
             // 3. 深度監聽本地資料，只要你在畫面上打勾或新增，就自動推送到雲端
             watch(itinerary, (newVal) => {
                 if (!isSyncingFromCloud && tripRef) tripRef.child('itinerary').set(newVal);
