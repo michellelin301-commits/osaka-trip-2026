@@ -797,34 +797,7 @@
 				});
 			};
 
-            const login = () => {
-			const key = passwordInput.value;
-			if (!key) return;
-
-			const testRef = db.ref('osaka_trip_' + key);
-			
-			testRef.once('value')
-				.then((snapshot) => {
-					// ✅ 加上 .exists() 判斷節點是否真的存在
-					if (snapshot.exists()) { 
-						isLoggedIn.value = true;
-						loginError.value = '';
-						localStorage.setItem('osaka_trip_vip_pass', key);
-						tripRef = testRef;
-						startDataSync();
-					} else {
-						// 節點不存在（密碼錯誤）
-						console.warn("查無此行程資料");
-						loginError.value = '通關密語錯誤或查無行程';
-						passwordInput.value = '';
-					}
-				})
-				.catch((error) => {
-					console.error("驗證失敗:", error);
-					loginError.value = '連線失敗或權限不足';
-					passwordInput.value = '';
-				});
-		};
+            
 			
 			const selectedDayIndex = ref(null);
 			const selectedSpotIndex = ref(null);
@@ -1829,6 +1802,34 @@
 				}
 			});
 
+			const login = () => {
+			const key = passwordInput.value;
+			if (!key) return;
+
+			const testRef = db.ref('osaka_trip_' + key);
+			
+			testRef.once('value')
+				.then((snapshot) => {
+					// ✅ 加上 .exists() 判斷節點是否真的存在
+					if (snapshot.exists()) { 
+						isLoggedIn.value = true;
+						loginError.value = '';
+						localStorage.setItem('osaka_trip_vip_pass', key);
+						tripRef = testRef;
+						startDataSync();
+					} else {
+						// 節點不存在（密碼錯誤）
+						console.warn("查無此行程資料");
+						loginError.value = '通關密語錯誤或查無行程';
+						passwordInput.value = '';
+					}
+				})
+				.catch((error) => {
+					console.error("驗證失敗:", error);
+					loginError.value = '連線失敗或權限不足';
+					passwordInput.value = '';
+				});
+			};
 
             // 3. 深度監聽本地資料，只要你在畫面上打勾或新增，就自動推送到雲端
             watch(itinerary, (newVal) => {
