@@ -562,11 +562,17 @@
 
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-semibold text-slate-800 text-base flex items-center">
-                            <i class="fas fa-exchange-alt text-sky-600 mr-2"></i>即時匯率換算
-                        </h3>
-                        <span class="text-xs text-sky-700 bg-sky-100 px-2 py-1 rounded uppercase font-bold">Rate: {{ exchangeRate }}</span>
-                    </div>
+						<h3 class="font-semibold text-slate-800 text-base flex items-center">
+							<i class="fas fa-exchange-alt text-sky-600 mr-2"></i>即時匯率換算
+						</h3>
+						<div class="flex items-center gap-1.5">
+							<!-- <span v-if="lastUpdateRateTime" class="text-[10px] text-slate-400 font-medium">{{ lastUpdateRateTime }} 更新</span> -->
+							<button @click="updateExchangeRate" class="w-6 h-6 flex items-center justify-center bg-sky-50 text-sky-600 rounded hover:bg-sky-100 transition active-scale shadow-sm border border-sky-100" :class="{'opacity-50 pointer-events-none': isUpdatingRate}">
+								<i class="fas fa-sync-alt text-[10px]" :class="{'fa-spin': isUpdatingRate}"></i>
+							</button>
+							<span class="text-xs text-sky-700 bg-sky-100 px-2 py-1 rounded uppercase font-bold">Rate: {{ exchangeRate }}</span>
+						</div>
+					</div>
                     <div class="flex items-center gap-2">
                         <div class="relative w-[45%]">
                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 text-xs font-semibold">JPY</span>
@@ -886,7 +892,36 @@
             
             const currentDayIndex = ref(0); 
             const calcJpy = ref(null);
-            const exchangeRate = ref(0.215);
+			const exchangeRate = ref(0.215); // 預設匯率作為備用
+			const isUpdatingRate = ref(false); // 控制旋轉動畫狀態
+			const lastUpdateRateTime = ref(''); // 紀錄最後更新時間
+
+			// 呼叫免費 API 更新匯率
+			const updateExchangeRate = async () => {
+				isUpdatingRate.value = true;
+				try {
+					// 使用 exchangerate-api，取得以 JPY 為基準的各國匯率
+					const response = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
+					const data = await response.json();
+					
+					if (data && data.rates && data.rates.TWD) {
+						// 抓取台幣匯率並四捨五入到小數點後四位
+						exchangeRate.value = parseFloat(data.rates.TWD.toFixed(4));
+						
+						// 紀錄更新時間 (HH:MM)
+						const now = new Date();
+						lastUpdateRateTime.value = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+					}
+				} catch (error) {
+					console.error("匯率更新失敗:", error);
+					// 若斷線或 API 異常，保留原本的匯率值，不中斷使用者體驗
+				} finally {
+					isUpdatingRate.value = false;
+				}
+			};
+			
+			
+			
             const weatherForecast = ref([
                 { date: '4/16 (Thu)', temp: '14~20°C', desc: '多雲時晴', icon: 'fas fa-cloud-sun', color: 'text-amber-500' },
                 { date: '4/17 (Fri)', temp: '13~19°C', desc: '晴朗', icon: 'fas fa-sun', color: 'text-amber-500' },
@@ -1797,7 +1832,10 @@
 							localStorage.removeItem('osaka_trip_vip_pass');
 						});
 				}
+				// 加入這行：網頁載入時自動更新一次匯率
+				updateExchangeRate();
 			});
+
 
 			const login = () => {
 			const key = passwordInput.value;
@@ -1866,6 +1904,7 @@
 				ticketList, isAddTicketOpen, newTicketName, newTicketUrl, addTicketLink, deleteTicket, 
 				currentTab, infoSubTab,
 				isLoggedIn, passwordInput, loginError, login,
+				isUpdatingRate, lastUpdateRateTime, updateExchangeRate,
             };
         }
     }).mount('#app');
